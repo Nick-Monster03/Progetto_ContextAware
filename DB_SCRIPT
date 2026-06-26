@@ -1,0 +1,65 @@
+CREATE TABLE UTENTE (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cognome VARCHAR(100) NOT NULL,
+    campus VARCHAR(100),
+    mezzo_di_spostamento VARCHAR(50) default 'A PIEDI'
+        CHECK (mezzo_di_spostamento IN ('A PIEDI', 'BICI A NOLEGGIO', 'AUTOBUS', 'TRENO', 'MOTO', 'AUTO', 'ALTRO'))
+);
+
+CREATE TABLE CATEGORIA_POI (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL UNIQUE 
+        CHECK (nome IN ('biblioteca', 'sala_studio', 'mensa', 'ufficio', 'segreteria', 'fermata', 'noleggio_bici', 'stazione', 'benzinaio'))
+);
+
+
+CREATE TABLE POI (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    id_categoria INTEGER NOT NULL 
+        REFERENCES CATEGORIA_POI(id) ON DELETE RESTRICT,
+    descrizione TEXT,
+    geometria GEOMETRY(Geometry, 4326) NOT NULL 
+);
+
+
+CREATE TABLE PREFERENZA_UTENTE (
+    id_utente INTEGER NOT NULL REFERENCES UTENTE(id) ON DELETE CASCADE,
+    id_categoria INTEGER NOT NULL REFERENCES CATEGORIA_POI(id) ON DELETE CASCADE,
+    PRIMARY KEY (id_utente, id_categoria)
+);
+
+CREATE TABLE ORARIO_POI (
+    id SERIAL PRIMARY KEY,
+    id_poi INTEGER NOT NULL REFERENCES POI(id) ON DELETE CASCADE,
+    giorno INTEGER NOT NULL CHECK (giorno >= 0 AND giorno <= 6),
+    orario_apertura TIME NOT NULL,
+    orario_chiusura TIME NOT NULL,
+    UNIQUE(id_poi, giorno, orario_apertura, orario_chiusura)
+);
+
+CREATE TABLE EVENTO (
+    id SERIAL PRIMARY KEY,
+    id_utente INTEGER NOT NULL REFERENCES UTENTE(id) ON DELETE CASCADE,
+    id_poi INTEGER REFERENCES POI(id) ON DELETE SET NULL,
+    tipo VARCHAR(50) NOT NULL 
+        CHECK (tipo IN ('Avviso_agenda', 'Suggerimento', 'poi_selezionato', 'geofencing_enter', 'geofencing_exit')),
+    messaggio TEXT,
+    feedback VARCHAR(20) 
+        CHECK (feedback IN ('Utile', 'Non Utile')),
+    motivo TEXT,
+    time_stamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    posizione_utente_reale GEOMETRY(Point, 4326)
+    --posizione_utente_perturbata GEOMETRY(Point, 4326) FORSE IN SEGUITO
+);
+
+CREATE TABLE AGENDA_UTENTE (
+    id SERIAL PRIMARY KEY,
+    id_utente INTEGER NOT NULL REFERENCES UTENTE(id) ON DELETE CASCADE,
+    id_poi INTEGER NOT NULL REFERENCES POI(id) ON DELETE CASCADE,
+    titolo VARCHAR(150) NOT NULL,
+    orario_inizio TIMESTAMPTZ NOT NULL,
+    orario_fine TIMESTAMPTZ NOT NULL,
+    CONSTRAINT chk_orario_validi CHECK (orario_fine > orario_inizio)
+);

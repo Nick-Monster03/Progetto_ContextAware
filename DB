@@ -1,0 +1,27 @@
+UTENTE(id*, nome, cognome, campus, mezzo_di_dpostamento)
+POI(id*, iome, id_ategoria, descrizione, geometry(MultiPolygon o Polygon, 4326))
+CATEGORIA_POI(id*, nome)
+PREFERENZA_UTENTE(id_utente*, id_categoria*)
+ORARIO_POI(id*, id_POI, giorno, orario_apertura, orario_chiusura) giorno = 0 (domenica), 1 (luendì),..., 6 (sabato)
+EVENTO(id*, id_utente, id_POI, tipo, posizione_utente, messaggio, feedback, motivo, time_stamp)
+AGENDA_UTENTE(id, id_utente, id_poi, titolo, orario_inizio, orario_fine)
+
+CATEGORIA_POI.Nome -> biblioteca, sala_studio, mensa, ufficio, segreteria, fermata, noleggio_bici, stazione, benzinaio
+EVENTO.Tipo -> Avviso_agenda, Suggerimento, poi_selezionato, geofencing_enter, geofencing_exit
+EVENTO.FeedBack -> Utile, Non Utile
+UTENTE.MezzoDiSpostamento -> "A PIEDI", "BICI A NOLEGGIO", "AUTOBUS", "TRENO", "MOTO", "AUTO", "ALTRO"
+
+Reggola di Ranking:
+- si considera solo quello che è nel raggio di 2km
+- fuori orario di apertura -> punteggio = punteggio_precedente * 0
+- è nelle preferenze -> punteggio = punteggio_base * 1.5
+- punteggio base -> punteggio base = 100/distanza_in_metri, se distanza<=0 allora punteggio base= 100
+
+Altro: 
+- geofencing di 10m intorno ai POI di categorie preferite 
+- 100 m invece per i POI in base al mezzo di trasporto:
+    - benzianio se AUTO o MOTO
+    - fermata se AUTOBUS
+    - stazione se TRENO
+    - noleggio bici se BICI A NOLEGGIO
+Appena si Apre l'app arriva una notifica del POI con punteggio ranking più alto marcato come Suggerimento tra gli eventi  

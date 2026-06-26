@@ -1,0 +1,54 @@
+ROAD MAP
+
+Roadmap: Obiettivo 30/30 (4 Settimane)
+Settimana 1: Infrastruttura, Database e Dati (Le Fondamenta)
+
+In questa fase non tocchi né l'app né le API. Prepari solo l'ambiente e i dati.
+
+    Configurazione Docker (+2 pt): Scrivi il docker-compose.yml per tirare su il container di PostgreSQL (con estensione PostGIS attivata) e un container vuoto per FastAPI.
+
+    Schema del Database: Crea le tabelle principali:
+
+        PointsOfInterest (con colonna geometry per PostGIS).
+
+        UserProfiles (preferenze per il modulo Personalizzazione +2 pt).
+
+        CalendarEvents (per il modulo Calendario +2 pt).
+
+        Geofences (poligoni delle aree universitarie per il modulo Geo-fencing +2 pt).
+
+    Magia con GeoPandas: Usa script Python con GeoPandas per creare un dataset fittizio del tuo campus. Genera punti (aule, biblioteche), poligoni (geofence degli edifici) ed esportali direttamente nel database PostGIS usando SQLAlchemy.
+
+Settimana 2: Il Cuore Logico (API FastAPI & PostGIS)
+
+Ora costruisci il cervello del sistema. FastAPI ti permetterà di fare questo molto velocemente.
+
+    API di Base: Crea gli endpoint REST per leggere i PoI e aggiornare il profilo utente.
+
+    Query Spaziali: Scrivi la query PostGIS per trovare i PoI in un raggio di X metri dalla posizione dell'utente (usando ST_DWithin).
+
+    Motore di Suggerimento (Context-Aware): Scrivi la funzione Python che prende in input (Posizione, Orario, Profilo Utente) e restituisce una lista ordinata di luoghi pertinenti.
+
+    Logica Privacy (+2 pt): Scrivi una funzione in FastAPI che intercetta la posizione reale inviata dall'app, applica una "perturbazione" (aggiunge rumore spaziale/offset) e usa quella posizione finta per le query successive.
+
+Settimana 3: Front-end Mobile & Dashboard (Kotlin & Web)
+
+È il momento di dare un volto al progetto. Mantieni le interfacce estremamente pulite e minimali.
+
+    Dashboard Web Minimale: In FastAPI, servi una pagina HTML statica con Leaflet.js per mostrare la mappa del campus, i PoI e le aree di geofence.
+
+    App Kotlin (Mappa e GPS): Implementa Google Maps SDK o OSMDroid. Aggiungi il permesso per la localizzazione (o usa coordinate simulate con dei semplici bottoni "Vai in Mensa", "Vai in Biblioteca").
+
+    Integrazione API: Fai comunicare l'app con FastAPI usando librerie come Retrofit. Mostra i PoI vicini.
+
+    Notifiche Contestuali (+2 pt): Fai in modo che l'app interroghi il server. Se l'API di geofencing risponde che sei entrato in un'area (e magari hai una lezione a breve), l'app mostra una notifica locale Android.
+
+Settimana 4: Analytics, Test e Relazione (La Chiusura)
+
+L'ultima settimana è dedicata a fare bella figura e raccogliere i punti dei moduli finali.
+
+    Analytics Spaziale (+2 pt): Aggiungi una visualizzazione "Heatmap" alla dashboard web. Conta quante volte i suggerimenti sono stati generati in certe aree e mostralo graficamente.
+
+    Script GeoPandas per la Relazione: Crea uno script Python a parte per analizzare il trade-off della privacy. Mettigli in pasto posizioni reali e posizioni perturbate, calcola la perdita di accuratezza (Quality of Service) e genera i grafici con Matplotlib da incollare direttamente nella relazione.
+
+    Stesura Relazione: Spiega chiaramente le scelte context-aware, documenta le API e inserisci i grafici della privacy.
