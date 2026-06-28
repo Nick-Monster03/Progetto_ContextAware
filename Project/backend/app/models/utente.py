@@ -20,6 +20,7 @@ class UtenteBase(SQLModel):
 class Utente(UtenteBase, table=True):
     __tablename__ = "utente"
     id: int | None = Field(default=None, primary_key=True)
+    mezzo_di_spostamento: str | None = Field(default=MezzoSpostamento.A_PIEDI.value, max_length=50)
 
 class UtenteCreate(UtenteBase):
     pass

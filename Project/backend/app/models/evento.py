@@ -17,12 +17,12 @@ class FeedbackEvento(str, enum.Enum):
     NON_UTILE = 'Non Utile'
 
 class EventoBase(SQLModel):
-    id_utente: int
-    id_poi: Optional[int] = Field(default=None)
+    id_utente: int = Field(foreign_key="utente.id")
+    id_poi: int | None = Field(default=None, foreign_key="poi.id")
     tipo: TipoEvento = Field(default=TipoEvento.SUGGERIMENTO)
-    messaggio: Optional[str] = Field(default=None)
-    feedback: Optional[FeedbackEvento] = Field(default=None)
-    motivo: Optional[str] = Field(default=None)
+    messaggio: str | None = Field(default=None)
+    feedback: FeedbackEvento | None = Field(default=FeedbackEvento.UTILE)
+    motivo: str | None = Field(default=None)
 
 class Evento(EventoBase, table=True):
     __tablename__ = "evento"

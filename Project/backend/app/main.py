@@ -1,11 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlmodel import Session, select
-
-# IMPORT AGGIORNATO: indica a FastAPI di cercare dentro la cartella session
+from fastapi import FastAPI, Depends, HTTPException # type: ignore
+from sqlmodel import Session, select # type: ignore
+from models.utente import Utente
+from routers import utente_routers, poi_routers
 from session.database import get_session
 
-# Importiamo il modello Utente dal file utente.py dentro la cartella models
-from models.utente import Utente, MezzoSpostamento
+
 
 app = FastAPI(
     title="Context-Aware Campus Assistant",
@@ -13,10 +12,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+#Tutte le route per ogni Tabella del DB
+app.include_router(utente_routers.router)
+app.include_router(poi_routers.router)
+
 @app.get("/")
 def home():
     """
-    Endpoint di rotto per verificare che FastAPI sia attivo.
+    Endpoint di root per verificare che FastAPI sia attivo.
     """
     return {
         "status": "online",
@@ -45,4 +48,3 @@ def test_database_connection(session: Session = Depends(get_session)):
             status_code=500,
             detail=f"Errore critico di connessione al Database: {str(e)}"
         )
-
