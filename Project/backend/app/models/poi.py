@@ -14,12 +14,12 @@ class POIBase(SQLModel):
     descrizione: str | None = Field(default=None, max_length=500)
     geometria: Any = Field(sa_column=Column(Geometry(geometry_type="GEOMETRY", srid=4326, spatial_index=True)))
  
- 
+
 class POI(POIBase, table=True):
     __tablename__ = "poi"
     id: int | None = Field(default=None, primary_key=True)
  
- 
+
 class POICreate(POIBase):
     pass
  
@@ -37,7 +37,9 @@ class POIPublic(POIBase):
             return mapping(geometria)
         return geometria
  
- 
+class POIDistance(POIPublic):
+    distance: float
+    
 class POIUpdate(SQLModel):
     nome: str | None = Field(default=None, max_length=150)
     id_categoria: int | None = Field(default=None, foreign_key="categoria_poi.id")

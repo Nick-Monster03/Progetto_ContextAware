@@ -1,0 +1,33 @@
+from typing import List
+from fastapi import APIRouter, Depends, Query
+from sqlmodel import Session
+from pydantic import BaseModel
+
+from models.evento import EventoPublic
+from session.database import get_session
+from services.poi_service import PoiService
+from services.raccomandation_service import RaccomandationService
+from models.poi import POIDistance
+
+router = APIRouter(prefix="/recommendations", tags=["Raccomandazioni"])
+
+
+def get_poi_service(session: Session = Depends(get_session)) -> PoiService:
+    return PoiService(session)
+
+def get_recommendation_service(session: Session = Depends(get_session),
+    poi_service: PoiService = Depends(get_poi_service)) -> RaccomandationService:
+    return RaccomandationService(session, poi_service)
+
+
+@router.get("/ranking")
+def get_ranking(id_utente: int, lat: float, lon: float, service: RaccomandationService = Depends(get_recommendation_service)):
+    return service.calculate_ranking(id_utente=id_utente, lat=lat, lon=lon)
+
+@router.post("/startup-suggestion", response_model=EventoPublic | dict)
+def trigger_startup_suggestion(id_utente: int, lat: float, lon: float, service: RaccomandationService = Depends(get_recommendation_service)):
+    """
+    Chiamata dall'app all'avvio. Calcola il ranking attuale e genera 
+    un Evento di tipo 'Suggerimento' salvandolo a DB.
+    """
+    return service.generate_startup_suggestion(id_utente=id_utente, lat=lat, lon=lon)

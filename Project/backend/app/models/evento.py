@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, Any
-from sqlmodel import DateTime, Field, SQLModel
+from sqlmodel import DateTime, Field, SQLModel, String
 import enum
 from sqlalchemy import Column, func
 from geoalchemy2 import Geometry
@@ -19,9 +19,9 @@ class FeedbackEvento(str, enum.Enum):
 class EventoBase(SQLModel):
     id_utente: int = Field(foreign_key="utente.id")
     id_poi: int | None = Field(default=None, foreign_key="poi.id")
-    tipo: TipoEvento = Field(default=TipoEvento.SUGGERIMENTO)
+    tipo: TipoEvento = Field(default=TipoEvento.SUGGERIMENTO, sa_type=String(50))
     messaggio: str | None = Field(default=None)
-    feedback: FeedbackEvento | None = Field(default=FeedbackEvento.UTILE)
+    feedback: FeedbackEvento | None = Field(default=None, sa_type=String(20))
     motivo: str | None = Field(default=None)
 
 class Evento(EventoBase, table=True):
@@ -33,21 +33,18 @@ class Evento(EventoBase, table=True):
         default=None,
         sa_column=Column(DateTime, server_default=func.now()), 
     )
-    posizione_utente_reale: Optional[Any] = Field(
+    posizione_utente_reale: Any | None = Field(
         default=None,
         sa_column=Column(Geometry(geometry_type="POINT", srid=4326, spatial_index=True)),
     )
-
 
 class EventoCreate(EventoBase):
     latitudine: float 
     longitudine: float 
 
-
-class EventoUpdate(EventoBase):
+class EventoUpdate(SQLModel):
     feedback: FeedbackEvento | None = Field(default=FeedbackEvento.UTILE)
     motivo: str | None = Field(default=None)
-
 
 class EventoPublic(EventoBase):
     id: int

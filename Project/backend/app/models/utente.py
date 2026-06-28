@@ -1,6 +1,6 @@
 import enum
 from typing import Optional
-from sqlmodel import Field, SQLModel
+from sqlmodel import Column, Field, SQLModel, String
 
 class MezzoSpostamento(str, enum.Enum):
     A_PIEDI = "A PIEDI"
@@ -15,12 +15,11 @@ class UtenteBase(SQLModel):
     nome: str = Field(max_length=100, index=True)
     cognome: str = Field(max_length=100, index=True)
     campus: str | None = Field(default=None, max_length=100)
-    mezzo_di_spostamento: MezzoSpostamento | None = Field(default=MezzoSpostamento.A_PIEDI)
+    mezzo_di_spostamento: MezzoSpostamento | None = Field(default=MezzoSpostamento.A_PIEDI, sa_column=Column(String(50), nullable=True, default="A PIEDI"))
 
 class Utente(UtenteBase, table=True):
     __tablename__ = "utente"
     id: int | None = Field(default=None, primary_key=True)
-    mezzo_di_spostamento: str | None = Field(default=MezzoSpostamento.A_PIEDI.value, max_length=50)
 
 class UtenteCreate(UtenteBase):
     pass

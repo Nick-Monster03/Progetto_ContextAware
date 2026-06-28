@@ -1,6 +1,5 @@
 import enum
-from typing import Optional
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, String, Column
 
 class NomeCategoria(str, enum.Enum):
     BIBLIOTECA = "biblioteca"
@@ -14,7 +13,7 @@ class NomeCategoria(str, enum.Enum):
     BENZINAIO = "benzinaio"
 
 class CategoriaPOIBase(SQLModel):
-    nome: NomeCategoria = Field(unique=True, index=True)
+    nome: NomeCategoria = Field(sa_column=Column(String(50), unique=True, index=True))
 
 class CategoriaPOI(CategoriaPOIBase, table=True):
     __tablename__ = "categoria_poi"
@@ -27,4 +26,4 @@ class CategoriaPOIPublic(CategoriaPOIBase):
     id: int
 
 class CategoriaPOIUpdate(SQLModel):
-    nome: NomeCategoria | None = Field(default=None, unique=True)
+    nome: NomeCategoria | None = Field(default=None, sa_column=Column(String(50)))

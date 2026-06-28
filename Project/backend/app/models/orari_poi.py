@@ -19,5 +19,6 @@ class Orari_PoiPublic(Orari_PoiBase):
     id: int
 
 class Orari_PoiUpdate(SQLModel):
+    giorno: int | None = Field(default=None, ge=0, le=6)
     orario_apertura: time | None = Field(default=None)
     orario_chiusura: time | None = Field(default=None)
