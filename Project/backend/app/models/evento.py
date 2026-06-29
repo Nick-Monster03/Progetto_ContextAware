@@ -21,14 +21,14 @@ class EventoBase(SQLModel):
     id_poi: int | None = Field(default=None, foreign_key="poi.id")
     tipo: TipoEvento = Field(default=TipoEvento.SUGGERIMENTO, sa_type=String(50))
     messaggio: str | None = Field(default=None)
-    feedback: FeedbackEvento | None = Field(default=None, sa_type=String(20))
+    feedback: FeedbackEvento | None = Field(default=FeedbackEvento.NON_UTILE.value, sa_type=String(20))
     motivo: str | None = Field(default=None)
+    
 
 class Evento(EventoBase, table=True):
     __tablename__ = "evento"
 
     id: int | None = Field(default=None, primary_key=True)
-
     time_stamp: datetime | None = Field(
         default=None,
         sa_column=Column(DateTime, server_default=func.now()), 
@@ -43,7 +43,7 @@ class EventoCreate(EventoBase):
     longitudine: float 
 
 class EventoUpdate(SQLModel):
-    feedback: FeedbackEvento | None = Field(default=FeedbackEvento.UTILE)
+    feedback: FeedbackEvento | None = Field(default=FeedbackEvento.UTILE.value)
     motivo: str | None = Field(default=None)
 
 class EventoPublic(EventoBase):

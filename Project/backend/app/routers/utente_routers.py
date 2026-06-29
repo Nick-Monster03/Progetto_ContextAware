@@ -19,6 +19,10 @@ def create_utente(
 ):
     return service.create_utente(utente_in)
 
+@router.get("/", response_model=List[UtentePublic])
+def get_all_utenti(service: UtenteService = Depends(get_utente_service)):
+    return service.get_all_utenti()
+
 @router.get("/{utente_id}", response_model=UtentePublic)
 def get_utente(
     utente_id: int, 

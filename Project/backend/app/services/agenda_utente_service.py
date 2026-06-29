@@ -4,7 +4,7 @@ from sqlmodel import Session, select, text
 from typing import Any, Dict, List
 from fastapi import HTTPException, status
 from models.poi import POI
-from models.agenda_utente import AgendaUtente, AgendaUtenteCreate, AgendaUtenteUpdate
+from models.agenda_utente import AgendaUtente, AgendaUtenteCreate, AgendaUtenteUpdate, AgendaUtentePublic, AgendaUtenteContext
 
 class AgendaService:
     def __init__(self, session: Session):
@@ -38,13 +38,13 @@ class AgendaService:
         self.session.commit()
         return db_impegno
 
-    def get_impegno(self, impegno_id: int) -> AgendaUtente:
+    def get_impegno(self, impegno_id: int) -> AgendaUtentePublic:
         impegno = self.session.get(AgendaUtente, impegno_id)
         if not impegno:
             raise ValueError("Impegno in agenda non trovato.")
         return impegno
 
-    def get_agenda_by_utente(self, id_utente: int, solo_futuri: bool = False) -> List[AgendaUtente]:
+    def get_agenda_by_utente(self, id_utente: int, solo_futuri: bool = False) -> List[AgendaUtentePublic]:
         """
         Recupera l'agenda di uno studente. Se solo_futuri=True, filtra gli eventi passati.
         """
@@ -57,7 +57,7 @@ class AgendaService:
         statement = statement.order_by(AgendaUtente.orario_inizio)
         return self.session.exec(statement).all()
 
-    def update_impegno(self, impegno_id: int, impegno_in: AgendaUtenteUpdate) -> AgendaUtente:
+    def update_impegno(self, impegno_id: int, impegno_in: AgendaUtenteUpdate) -> AgendaUtentePublic:
         db_impegno = self.get_impegno(impegno_id)
         impegno_data = impegno_in.model_dump(exclude_unset=True)
 
@@ -75,27 +75,26 @@ class AgendaService:
 
         self.session.add(db_impegno)
         self.session.commit()
-        self.session.refresh(db_impegno)
         return db_impegno
 
-    def delete_impegno(self, impegno_id: int) -> bool:
+    def delete_impegno(self, impegno_id: int) -> AgendaUtentePublic:
         db_impegno = self.get_impegno(impegno_id)
         self.session.delete(db_impegno)
         self.session.commit()
-        return True
+        return db_impegno
     
-    def get_impegni_critici(self, id_utente: int, lat: float, lon: float) -> List[Dict[str, Any]]:
+    def get_impegni_critici(self, id_utente: int, lat: float, lon: float) -> List[AgendaUtenteContext]:
         """
-        Restituisce gli impegni che iniziano entro 30 minuti.
-        Per ogni impegno, verifica la distanza dal POI associato.
+        Restituisce gli impegni che iniziano entro i prossimi 15 minuti.
+        Per ogni impegno calcola la distanza e genera un avviso contestuale.
         """
         ora_corrente = datetime.now(timezone.utc)
-        tra_30_minuti = ora_corrente + timedelta(minutes=30)
+        tra_15_minuti = ora_corrente + timedelta(minutes=15)
         
         statement = select(AgendaUtente).where(
             AgendaUtente.id_utente == id_utente,
             AgendaUtente.orario_inizio >= ora_corrente,
-            AgendaUtente.orario_inizio <= tra_30_minuti
+            AgendaUtente.orario_inizio <= tra_15_minuti
         )
         impegni = self.session.exec(statement).all()
         
@@ -105,21 +104,25 @@ class AgendaService:
             
             query_dist = text("""
                 SELECT ST_Distance(
-                    ST_Transform(ST_SetSRID(ST_MakePoint(:lon, :lat), 4326), 3857),
-                    ST_Transform(geometria, 3857)
+                    ST_Transform(ST_SetSRID(ST_MakePoint(:lon, :lat), 4326), 32632),
+                    ST_Transform(geometria, 32632)
                 )
                 FROM poi
                 WHERE id = :id_poi
             """)
 
-            distanza = self.session.exec(query_dist, {"lon": lon, "lat": lat, "id_poi": poi.id}).scalar() 
+            distanza = self.session.exec(query_dist, params={"lon": lon, "lat": lat, "id_poi": poi.id}).scalar() 
+            distanza_metri = round(distanza, 2) if distanza else 0.0
             
-            if distanza > 2000:
-                risultati.append({
-                    "titolo": imp.titolo,
-                    "orario": imp.orario_inizio,
-                    "distanza_metri": round(distanza, 2),
-                    "avviso": "Sei lontano dal luogo dell'impegno. Ti conviene partire!"
-                })
+            avviso = f"L'evento '{imp.titolo}' inizia tra 15 minuti! Sei a {distanza_metri} metri di distanza."
+            
+            impegno_data = imp.model_dump()
+            
+            risultato_obj = AgendaUtenteContext(
+                **impegno_data,
+                distanza_metri=distanza_metri,
+                avviso=avviso
+            )
+            risultati.append(risultato_obj)
                 
         return risultati

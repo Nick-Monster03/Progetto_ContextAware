@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlmodel import Session, select 
 from models.utente import Utente
 from session.database import get_session
-from routers import utente_routers, poi_routers, categoria_routers, evento_routers, preferenza_routers, orari_routers, agenda_utente_routers, raccomandation_routers, geofence_routers
+from routers import utente_routers, poi_routers, categoria_routers, evento_routers, preferenza_routers, orari_routers, agenda_utente_routers, raccomandation_routers, geofence_routers, analytics_routers
 
 
 app = FastAPI(
@@ -21,6 +21,7 @@ app.include_router(orari_routers.router)
 app.include_router(agenda_utente_routers.router) 
 app.include_router(raccomandation_routers.router) 
 app.include_router(geofence_routers.router)
+app.include_router(analytics_routers.router)
 
 
 @app.get("/")

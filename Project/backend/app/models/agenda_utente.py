@@ -25,3 +25,7 @@ class AgendaUtenteUpdate(SQLModel):
     titolo: str | None = Field(default=None, max_length=100)
     orario_inizio: datetime | None = Field(default=None)
     orario_fine: datetime | None = Field(default=None)
+
+class AgendaUtenteContext(AgendaUtentePublic):
+    distanza_metri: float
+    avviso: str

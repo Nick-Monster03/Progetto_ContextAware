@@ -171,6 +171,12 @@ class PoiService:
         )
         return query
 
+    def _filter_by_campus(self, query: Select, params: Dict[str, Any], campus: str) -> Select:
+        """Aggiunge il filtro basato sul campus di appartenenza."""
+        query = query.where(POI.campus == campus)
+        params["campus"] = campus
+        return query
+
     def get_filtered_pois(
         self,
         lat: float | None = None,
@@ -179,7 +185,8 @@ class PoiService:
         max_distance_meters: float | None = None,
         orario_apertura: time | None = None,
         orario_chiusura: time | None = None,
-        mezzo_spostamento: str | None = None
+        mezzo_spostamento: str | None = None,
+        campus: str | None = None
     ) -> List[POI]:
         """
         Punto di ingresso per il filtraggio dinamico. 
@@ -189,6 +196,9 @@ class PoiService:
 
         if id_categoria is not None:
             query = query.where(POI.id_categoria == id_categoria)
+        
+        if campus is not None:
+            query = self._filter_by_campus(query, params, campus)
             
         if mezzo_spostamento is not None:
             query = self._filter_by_mezzo_spostamento(query, params, mezzo_spostamento)

@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlmodel import Session, select
 from models.preferenza_utente import PreferenzaUtente
 from models.categooria_poi import CategoriaPOI
-from models.utente import Utente, UtenteCreate, UtenteUpdate, MezzoSpostamento
+from models.utente import Utente, UtenteCreate, UtenteUpdate, MezzoSpostamento, UtentePublic
 
 class UtenteService:
     def __init__(self, session: Session):
@@ -19,7 +19,7 @@ class UtenteService:
         self.session.refresh(db_utente)
         return db_utente
 
-    def get_utente(self, utente_id: int) -> Utente:
+    def get_utente(self, utente_id: int) -> UtentePublic:
         """Recupera un utente tramite il suo ID."""
         utente = self.session.get(Utente, utente_id)
         if not utente:
@@ -29,6 +29,11 @@ class UtenteService:
             )
         return utente
 
+    def get_all_utenti(self) -> List[UtentePublic]:
+        """Recupera tutti gli utenti del sistema."""
+        statement = select(Utente)
+        risultati = self.session.exec(statement)
+        return risultati.all()
 
     def update_utente(self, utente_id: int, utente_in: UtenteUpdate) -> Utente:
         """Aggiorna i dati del profilo di un utente esistente."""
@@ -40,7 +45,6 @@ class UtenteService:
             
         self.session.add(db_utente)
         self.session.commit()
-        self.session.refresh(db_utente)
         return db_utente
 
     def delete_utente(self, utente_id: int):
@@ -50,19 +54,19 @@ class UtenteService:
         self.session.commit()
         return {"message": f"Utente {utente_id} eliminato con successo"}
 
-    def get_utenti_by_campus(self, campus: str) -> List[Utente]:
+    def get_utenti_by_campus(self, campus: str) -> List[UtentePublic]:
         """Recupera tutti gli utenti iscritti a un determinato campus."""
-        statement = select(Utente).where(Utente.campus == campus)
+        statement = select(UtentePublic).where(UtentePublic.campus == campus)
         risultati = self.session.exec(statement)
         return risultati.all()
-    
-    def get_utenti_by_mezzo(self, mezzo: MezzoSpostamento) -> List[Utente]:
+
+    def get_utenti_by_mezzo(self, mezzo: MezzoSpostamento) -> List[UtentePublic]:
         """Recupera tutti gli utenti che utilizzano un determinato mezzo di spostamento."""
-        statement = select(Utente).where(Utente.mezzo_di_spostamento == mezzo.value)
+        statement = select(UtentePublic).where(UtentePublic.mezzo_di_spostamento == mezzo.value)
         risultati = self.session.exec(statement)
         return risultati.all()
-    
-    def get_utenti_by_preferenza(self, id_categoria: int) -> List[Utente]:
+
+    def get_utenti_by_preferenza(self, id_categoria: int) -> List[UtentePublic]:
         """
         Recupera tutti gli utenti che hanno tra le proprie preferenze 
         una specifica categoria di POI.

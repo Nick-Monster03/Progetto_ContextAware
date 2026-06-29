@@ -3,7 +3,7 @@ from sqlmodel import Session
 from typing import Any, Dict, List
 
 from session.database import get_session
-from models.agenda_utente import AgendaUtenteCreate, AgendaUtenteUpdate, AgendaUtentePublic
+from models.agenda_utente import AgendaUtenteCreate, AgendaUtenteUpdate, AgendaUtentePublic, AgendaUtenteContext
 from services.agenda_utente_service import AgendaService
 
 router = APIRouter(prefix="/agenda", tags=["Agenda Utente"])
@@ -29,12 +29,11 @@ def read_agenda_utente(id_utente: int, solo_futuri: bool =False, service: Agenda
     """
     return service.get_agenda_by_utente(id_utente=id_utente, solo_futuri=solo_futuri)
 
-@router.get("/imminenti", response_model=List[Dict[str, Any]])
-def get_impegni_imminenti(id_utente: int, lat: float, lon: float,
-    service: AgendaService = Depends(get_agenda_service)):
+@router.get("/imminenti", response_model=List[AgendaUtenteContext])
+def get_impegni_imminenti(id_utente: int, lat: float, lon: float, service: AgendaService = Depends(get_agenda_service)):
     """
-    Restituisce gli impegni che iniziano entro 30 minuti 
-    e avvisa l'utente se si trova a più di 500m dalla destinazione.
+    Restituisce gli impegni che iniziano entro i prossimi 15 minuti.
+    Fornisce la distanza esatta in metri e un avviso contestuale.
     """
     return service.get_impegni_critici(id_utente=id_utente, lat=lat, lon=lon)
 
