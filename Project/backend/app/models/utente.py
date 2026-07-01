@@ -20,9 +20,10 @@ class UtenteBase(SQLModel):
 class Utente(UtenteBase, table=True):
     __tablename__ = "utente"
     id: int | None = Field(default=None, primary_key=True)
+    password: str = Field(max_length=100)
 
 class UtenteCreate(UtenteBase):
-    pass
+    password: str = Field(max_length=100)
 
 class UtentePublic(UtenteBase):
     id: int
