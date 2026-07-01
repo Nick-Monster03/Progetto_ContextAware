@@ -1,0 +1,49 @@
+Step 1: Setup dello Scheletro e Navigazione (UI di base)
+
+    Creare un nuovo progetto Android.
+
+    Aggiungere le dipendenze per la navigazione (Navigation Component).
+
+    Creare MainActivity con un BottomNavigationView e collegarlo ai tre Fragment (MapFragment, SuggestionsFragment, ProfileFragment) vuoti per ora.
+
+Step 2: Livello Dati e Networking (Connessione al tuo Backend)
+
+    Configurare Retrofit e OkHttp.
+
+    Creare le classi Model speculari ai tuoi script Python.
+
+    Creare l'ApiService con le interfacce per i tuoi router (GET POI, POST eventi, GET raccomandazioni).
+
+    Creare il Repository che gestisce queste chiamate.
+
+Step 3: La Mappa e la Localizzazione (Visualizzazione Spaziale)
+
+    Integrare OSMDroid nel MapFragment.
+
+    Richiedere i permessi di localizzazione (ACCESS_FINE_LOCATION).
+
+    Fare una chiamata al backend per scaricare i POI e piazzare i Marker sulla mappa.
+
+Step 4: Gestione Utente e Preferenze
+
+    Sviluppare il ProfileFragment per permettere la selezione delle preferenze.
+
+    Aggiornare i dati dell'utente sul backend (tramite la tua API degli utenti/preferenze), essenziale affinché il ranking di raccomandazione funzioni correttamente.
+
+Step 5: Geofencing e Notifiche (La parte Context-Aware)
+
+    Richiedere il permesso ACCESS_BACKGROUND_LOCATION.
+
+    Implementare il GeofenceManager per registrare un raggio di 2km attorno ai POI chiave.
+
+    Creare il GeofenceBroadcastReceiver che si attiva quando entri nella zona, lancia una chiamata API POST (tipo geofencing_enter) e riceve indietro il suggerimento.
+
+    Mostrare una notifica Android all'utente.
+
+Step 6: Feedback Loop
+
+    L'utente clicca sulla notifica e finisce nel SuggestionsFragment.
+
+    Legge il suggerimento e clicca su "Utile" o "Non utile".
+
+    L'app invia l'aggiornamento dell'evento tramite API per salvare il feedback nel database.

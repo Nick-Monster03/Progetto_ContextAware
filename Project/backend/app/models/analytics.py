@@ -9,6 +9,10 @@ class StatisticaFeedback(BaseModel):
     is_utile: bool
     conteggio: int
 
+class HeatmapPoint(BaseModel):
+    lat: float
+    lon: float
+
 class StatisticaPOI(BaseModel):
     id_poi: int
     nome_poi: str

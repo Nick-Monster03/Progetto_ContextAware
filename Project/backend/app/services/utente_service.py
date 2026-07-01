@@ -40,8 +40,7 @@ class UtenteService:
         db_utente = self.get_utente(utente_id)
         
         update_data = utente_in.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(db_utente, key, value)
+        db_utente.sqlmodel_update(update_data)
             
         self.session.add(db_utente)
         self.session.commit()

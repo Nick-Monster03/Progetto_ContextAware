@@ -4,7 +4,7 @@ from typing import List
 
 from session.database import get_session
 from services.analytics_service import AnalyticsService
-from models.analytics import DashboardResponse, StatisticaMezzo, StatisticaFeedback, StatisticaPOI
+from models.analytics import DashboardResponse, HeatmapPoint, StatisticaMezzo, StatisticaFeedback, StatisticaPOI
 
 router = APIRouter(prefix="/analytics", tags=["Statistiche Dashboard"])
 
@@ -39,3 +39,11 @@ def get_dashboard_completa(service: AnalyticsService = Depends(get_analytics_ser
     Ideale per il primo caricamento della pagina della Dashboard Web.
     """
     return service.get_dashboard_stats()
+
+@router.get("/heatmap/pois", response_model=List[HeatmapPoint])
+def get_poi_heatmap(id_utente: int | None, service: AnalyticsService = Depends(get_analytics_service)):
+    """
+    Restituisce i centroidi (lat, lon) dei POI coinvolti nei suggerimenti.
+    Può essere globale (tutti gli utenti) o mirata al singolo utente se viene passato l'id_utente.
+    """
+    return service.get_heatmap_poi_suggeriti(id_utente=id_utente)

@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 from fastapi import HTTPException, status
 from sqlmodel import Session, select, text
 from models.categooria_poi import CategoriaPOI
-from models.poi import POI, POICreate, POIDistance
+from models.poi import POI, POICreate, POIDistance, POIUpdate, POIPublic
 from models.orari_poi import Orari_Poi
 
 class PoiService: 
@@ -79,6 +79,21 @@ class PoiService:
 
         risultati = self.session.exec(query, params={"lat": lat, "lon": lon, "radius": radius_meters}).all()
         return risultati
+
+    def update_poi(self, poi_id: int, poi_in: POIUpdate) -> POI:
+        db_poi = self.get_poi_by_id(poi_id)
+        update_data = poi_in.model_dump(exclude_unset=True)
+        db_poi.sqlmodel_update(update_data)
+
+        self.session.add(db_poi)
+        self.session.commit()
+        return db_poi
+
+    def delete_poi(self, poi_id: int) -> POI:
+        db_poi = self.get_poi_by_id(poi_id)
+        self.session.delete(db_poi)
+        self.session.commit()
+        return db_poi
 
     def _filter_by_mezzo_spostamento(self, query: Select, params: Dict[str, Any], mezzo_spostamento: str) -> Select:
         """Aggiunge il filtro basato sulle preferenze del mezzo di spostamento."""

@@ -1,0 +1,11 @@
+{
+"type": "FeatureCollection",
+"name": "noleggio_bici_cesena",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "full_id": "n1719122214", "osm_id": "1719122214", "osm_type": "node", "amenity": "bicycle_rental", "operator:wikidata": null, "operator:type": null, "website": null, "operator": null, "name": "Parcheggio Mattarella" }, "geometry": { "type": "Point", "coordinates": [ 12.2476055, 44.1426305 ] } },
+{ "type": "Feature", "properties": { "full_id": "n1719122537", "osm_id": "1719122537", "osm_type": "node", "amenity": "bicycle_rental", "operator:wikidata": null, "operator:type": null, "website": null, "operator": "http://www.comune.cesena.fc.it/flex/cmhttp://www.comune.cesena.fc.it/flex/cm/pages/ServeBLOB.php/L/IT/IDPagina/10373/pages/ServeBLOB.php/L/IT/IDPagina/10373", "name": "Piazzale della Stazione ferroviaria" }, "geometry": { "type": "Point", "coordinates": [ 12.2490868, 44.1446687 ] } },
+{ "type": "Feature", "properties": { "full_id": "n4476504106", "osm_id": "4476504106", "osm_type": "node", "amenity": "bicycle_rental", "operator:wikidata": null, "operator:type": null, "website": "http://www.mimuovoinbici.it/", "operator": null, "name": "MiMuovo" }, "geometry": { "type": "Point", "coordinates": [ 12.2489881, 44.14439 ] } },
+{ "type": "Feature", "properties": { "full_id": "n8024210028", "osm_id": "8024210028", "osm_type": "node", "amenity": "bicycle_rental", "operator:wikidata": "Q108937937", "operator:type": "private", "website": null, "operator": "Bicincittà", "name": null }, "geometry": { "type": "Point", "coordinates": [ 12.2361184, 44.1476994 ] } }
+]
+}

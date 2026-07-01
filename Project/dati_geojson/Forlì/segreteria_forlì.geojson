@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "segreteria_forlì",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "full_id": "n12636279871", "osm_id": "12636279871", "osm_type": "node", "office": "educational_institution", "name:it": "Associazione degli Studenti Slovacchi Università di Bologna", "name": "Associazione degli Studenti Slovacchi Università di Bologna" }, "geometry": { "type": "Point", "coordinates": [ 12.0391381, 44.2207428 ] } }
+]
+}

@@ -99,6 +99,15 @@ def get_poi_by_id(poi_id: int, service: PoiService = Depends(get_poi_service)):
     """Recupera un singolo POI tramite il suo ID."""
     return service.get_poi_by_id(poi_id)
 
+@router.patch("/{poi_id}", response_model=POIPublic)
+def update_poi(poi_id: int, poi_in: POIUpdate, service: PoiService = Depends(get_poi_service)):
+    return service.update_poi(poi_id, poi_in)
+
+@router.delete("/{poi_id}", response_model=POIPublic)
+def delete_poi(poi_id: int, service: PoiService = Depends(get_poi_service)):
+    db_poi = service.delete_poi(poi_id)
+    return db_poi
+
 @router.get("/categoria/{id_categoria}", response_model=List[POIPublic])
 def get_pois_by_categoria(id_categoria: int, service: PoiService = Depends(get_poi_service)):
     """Filtra i POI in base alla loro categoria."""

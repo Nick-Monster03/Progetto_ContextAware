@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "station_forlì",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "full_id": "n252793817", "osm_id": "252793817", "osm_type": "node", "railway": "station", "wikipedia": "it:Stazione di Forlì", "wikidata": "Q3969647", "wheelchair": "yes", "website": "https://www.rfi.it/rfi/LINEE-STAZIONI-TERRITORIO/Le-stazioni/Accessibilit%C3%A0-stazioni/Info-Accessibilit%C3%A0-stazioni/FORLI", "train": "yes", "public_transport": "station", "operator:wikidata": "Q1060049", "operator:short": "RFI", "operator": "Rete Ferroviaria Italiana", "name": "Forlì", "internet_access": "wlan", "air_conditioning": "yes" }, "geometry": { "type": "Point", "coordinates": [ 12.0547835, 44.2240424 ] } }
+]
+}

@@ -3,7 +3,7 @@ from sqlalchemy import text
 from typing import List
 
 from models.evento import FeedbackEvento
-from models.analytics import DashboardResponse, StatisticaMezzo, StatisticaFeedback, StatisticaPOI
+from models.analytics import DashboardResponse, StatisticaMezzo, StatisticaFeedback, StatisticaPOI, HeatmapPoint
 
 class AnalyticsService:
     def __init__(self, session: Session):
@@ -66,3 +66,28 @@ class AnalyticsService:
             statistiche_feedback=self.get_statistiche_feedback(),
             poi_piu_attivi=self.get_statistiche_poi()
         )
+
+    def get_heatmap_poi_suggeriti(self, id_utente: int | None) -> List[HeatmapPoint]:
+        """
+        Restituisce le coordinate (centroide) dei POI più suggeriti.
+        Se id_utente è fornito, filtra solo per quel singolo utente.
+        """
+        sql_query = """
+            SELECT 
+                ST_Y(ST_Centroid(p.geometria)) as lat, 
+                ST_X(ST_Centroid(p.geometria)) as lon
+            FROM evento e
+            JOIN poi p ON e.id_poi = p.id
+            WHERE e.tipo = 'Suggerimento' AND p.geometria IS NOT NULL
+        """
+        
+        params = {}
+
+        if id_utente is not None:
+            sql_query += " AND e.id_utente = :id_utente"
+            params["id_utente"] = id_utente
+
+        query = text(sql_query)
+        risultati = self.session.exec(query, params=params).all()
+        
+        return [HeatmapPoint(lat=row[0], lon=row[1]) for row in risultati]
