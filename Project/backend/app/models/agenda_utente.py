@@ -20,7 +20,6 @@ class AgendaUtentePublic(AgendaUtenteBase):
     id: int
 
 class AgendaUtenteUpdate(SQLModel):
-    #id_utente: int | None = Field(default=None)
     id_poi: int | None = Field(default=None)
     titolo: str | None = Field(default=None, max_length=100)
     orario_inizio: datetime | None = Field(default=None)

@@ -1,20 +1,15 @@
 from typing import List
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
 from sqlmodel import Session
 
 from session.database import get_session
 from services.geofence_service import GeofenceService
-from models.poi import POIPublic
 from models.evento import EventoPublic
-from models.geofence import GeofenceTriggerRequest
+from models.geofence import GeofenceConfigResponse, GeofenceTriggerRequest
+
 
 router = APIRouter(prefix="/geofence", tags=["Geofencing"])
 
-class GeofenceConfigResponse(BaseModel):
-    poi: POIPublic
-    raggio: float
-    motivo: str
 
 def get_geofence_service(session: Session = Depends(get_session)) -> GeofenceService:
     return GeofenceService(session)
