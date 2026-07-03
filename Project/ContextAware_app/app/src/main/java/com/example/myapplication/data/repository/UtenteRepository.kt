@@ -1,5 +1,6 @@
 package com.example.myapplication.data.repository
 
+import android.util.Log
 import com.example.myapplication.data.model.MezzoSpostamento
 import com.example.myapplication.data.model.UtenteCreate
 import com.example.myapplication.data.model.UtentePublic
@@ -37,7 +38,9 @@ class UtenteRepository(private val api: UtenteApi) {
 
     suspend fun updateUtente(utenteId: Int, utenteIn: UtenteUpdate): Result<UtentePublic> {
         return try {
+            //Log.d("route", utenteIn.mezzoDiSpostamento?.name?:"-")
             val response = api.updateUtente(utenteId, utenteIn)
+            //Log.d("route", response.mezzoDiSpostamento?.name?:"-")
             Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)

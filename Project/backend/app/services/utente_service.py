@@ -37,11 +37,12 @@ class UtenteService:
 
     def update_utente(self, utente_id: int, utente_in: UtenteUpdate) -> Utente:
         """Aggiorna i dati del profilo di un utente esistente."""
+        #print(f"Utente aggiornato: {utente_in}")
         db_utente = self.get_utente(utente_id)
         
         update_data = utente_in.model_dump(exclude_unset=True)
         db_utente.sqlmodel_update(update_data)
-            
+        #print(f"Utente aggiornato: {db_utente}")
         self.session.add(db_utente)
         self.session.commit()
         return db_utente

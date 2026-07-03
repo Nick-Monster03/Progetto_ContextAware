@@ -36,6 +36,7 @@ def update_utente(
     utente_in: UtenteUpdate, 
     service: UtenteService = Depends(get_utente_service)
 ):
+    #print(f" da route Utente da aggiornare: {utente_in}")
     return service.update_utente(utente_id, utente_in)
 
 @router.delete("/{utente_id}", status_code=status.HTTP_200_OK)

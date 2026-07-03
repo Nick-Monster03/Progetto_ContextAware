@@ -24,6 +24,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.ui.map.MapView
 import com.example.myapplication.ui.map.MapViewModel
 import com.example.myapplication.ui.navigation.RootNavigation
+import com.example.myapplication.ui.profile.ProfileView
+import com.example.myapplication.ui.profile.ProfileViewModel
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -55,6 +57,9 @@ fun MyApplicationApp() {
     val mapViewModel: MapViewModel = viewModel(
         factory = MapViewModel.MapViewModelFactory(context)
     )
+    val profileViewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModel.ProfileViewModelFactory(context)
+    )
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -80,7 +85,7 @@ fun MyApplicationApp() {
 
                     AppDestinations.AGENDA -> AgendaScreenStub()
                     AppDestinations.STORICO -> HistoryScreenStub()
-                    AppDestinations.PROFILO -> ProfileScreenStub()
+                    AppDestinations.PROFILO -> ProfileView(viewModel = profileViewModel)
                 }
             }
         }
