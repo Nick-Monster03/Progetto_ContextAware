@@ -9,7 +9,7 @@ data class POIPublic(
     val nome: String,
     val id_categoria: Int,
     val descrizione: String? = null,
-    val geometria: JsonElement, // Gestisce l'oggetto GeoJSON (Point, Polygon, ecc.) proveniente da PostGIS
+    val geometria: JsonElement,
     val campus: String = "Bologna"
 )
 

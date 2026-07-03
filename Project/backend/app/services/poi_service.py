@@ -196,11 +196,11 @@ class PoiService:
         self,
         lat: float | None = None,
         lon: float | None = None,
-        id_categoria: int | None = None,
+        id_categoria: List[int] | None = None,
         max_distance_meters: float | None = None,
         orario_apertura: time | None = None,
         orario_chiusura: time | None = None,
-        mezzo_spostamento: str | None = None,
+        #mezzo_spostamento: str | None = None,
         campus: str | None = None
     ) -> List[POI]:
         """
@@ -210,13 +210,13 @@ class PoiService:
         params: Dict[str, Any] = {}
 
         if id_categoria is not None:
-            query = query.where(POI.id_categoria == id_categoria)
+            query = query.where(POI.id_categoria.in_(id_categoria))
         
         if campus is not None:
             query = self._filter_by_campus(query, params, campus)
             
-        if mezzo_spostamento is not None:
-            query = self._filter_by_mezzo_spostamento(query, params, mezzo_spostamento)
+        #if mezzo_spostamento is not None:
+        #    query = self._filter_by_mezzo_spostamento(query, params, mezzo_spostamento)
             
         if orario_apertura is not None or orario_chiusura is not None:
             query = self._filter_by_orario(query, params, orario_apertura, orario_chiusura)

@@ -33,11 +33,10 @@ interface PoiApi {
     suspend fun getFilteredPois(
         @Query("lat") lat: Double? = null,
         @Query("lon") lon: Double? = null,
-        @Query("id_categoria") idCategoria: Int? = null,
+        @Query("id_categoria") idCategoria: List<Int>? = null,
         @Query("max_distance_meters") maxDistanceMeters: Double? = null,
         @Query("orario_apertura") orarioApertura: String? = null,
         @Query("orario_chiusura") orarioChiusura: String? = null,
-        @Query("mezzo_spostamento") mezzoSpostamento: String? = null,
         @Query("campus") campus: String? = null
     ): List<POIPublic>
 

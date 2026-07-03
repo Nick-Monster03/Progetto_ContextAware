@@ -69,11 +69,11 @@ def get_pois_nearby_with_distance(
 def get_filtered_pois(
     lat: float | None = Query(default=None),
     lon: float | None = Query(default=None),
-    id_categoria: int | None = Query(default=None),
+    id_categoria: List[int] | None = Query(default=None),
     max_distance_meters: float | None = Query(default=None),
     orario_apertura: str | None = Query(default=None),
     orario_chiusura: str | None = Query(default=None),
-    mezzo_spostamento: str | None = Query(default=None),
+    #mezzo_spostamento: str | None = Query(default=None),
     campus: str | None = Query(default=None),
     service: PoiService = Depends(get_poi_service)
 ):
@@ -90,7 +90,7 @@ def get_filtered_pois(
         max_distance_meters=max_distance_meters,
         orario_apertura=orario_apertura,
         orario_chiusura=orario_chiusura,
-        mezzo_spostamento=mezzo_spostamento,
+        #mezzo_spostamento=mezzo_spostamento,
         campus=campus
     )
 

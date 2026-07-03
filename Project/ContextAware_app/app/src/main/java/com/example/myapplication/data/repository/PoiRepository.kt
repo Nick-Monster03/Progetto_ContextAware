@@ -48,17 +48,16 @@ class PoiRepository(private val api: PoiApi) {
     suspend fun getFilteredPois(
         lat: Double? = null,
         lon: Double? = null,
-        idCategoria: Int? = null,
+        idCategoria: List<Int>? = null,
         maxDistanceMeters: Double? = null,
         orarioApertura: String? = null,
         orarioChiusura: String? = null,
-        mezzoSpostamento: String? = null,
         campus: String? = null
     ): Result<List<POIPublic>> {
         return try {
             val response = api.getFilteredPois(
                 lat, lon, idCategoria, maxDistanceMeters,
-                orarioApertura, orarioChiusura, mezzoSpostamento, campus
+                orarioApertura, orarioChiusura, campus
             )
             Result.success(response)
         } catch (e: Exception) {

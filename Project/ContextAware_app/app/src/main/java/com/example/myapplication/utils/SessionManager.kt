@@ -49,7 +49,6 @@ class SessionManager(private val context: Context) {
             val mezzo = mezzoName?.let {
                 try { MezzoSpostamento.valueOf(it) } catch (e: Exception) { MezzoSpostamento.A_PIEDI }
             }
-
             UtentePublic(
                 id = id,
                 nome = preferences[USER_NOME] ?: "",

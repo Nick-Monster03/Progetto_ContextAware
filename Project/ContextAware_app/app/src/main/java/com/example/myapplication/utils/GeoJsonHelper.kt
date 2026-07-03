@@ -13,7 +13,7 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
 
-private const val TAG = "GeoJsonHelper"
+
 
 data class PolygonStyle(
     val fillColor: Int = Color.argb(75, 0, 150, 255),
@@ -34,7 +34,8 @@ fun addGeoJsonToMap(
     nome: String,
     descrizione: String?,
     jsonElement: JsonElement,
-    polygonStyle: PolygonStyle = defaultPolygonStyle
+    polygonStyle: PolygonStyle = defaultPolygonStyle,
+    onClick: () -> Unit = {} // <-- NUOVO PARAMETRO
 ): List<Any> {
     val addedOverlays = mutableListOf<Any>()
 
@@ -44,20 +45,20 @@ fun addGeoJsonToMap(
         val coordinates = jsonObj["coordinates"]?.jsonArray
 
         if (coordinates == null) {
-            Log.w(TAG, "POI $poiId ($nome): geometria senza 'coordinates', skip")
+            Log.w("GeoJsonHelper", "POI $poiId ($nome): geometria senza 'coordinates', skip")
             return addedOverlays
         }
 
         when (type) {
             "Point" -> {
-                createMarker(mapView, coordinates, nome, descrizione)?.let {
+                createMarker(mapView, coordinates, nome, descrizione, onClick)?.let {
                     mapView.overlays.add(it)
                     addedOverlays.add(it)
                 }
             }
 
             "Polygon" -> {
-                createPolygon(mapView, coordinates, nome, descrizione, polygonStyle)?.let {
+                createPolygon(mapView, coordinates, nome, descrizione, polygonStyle, onClick)?.let {
                     mapView.overlays.add(it)
                     addedOverlays.add(it)
                 }
@@ -65,17 +66,17 @@ fun addGeoJsonToMap(
 
             "MultiPolygon" -> {
                 coordinates.forEach { polygonCoords ->
-                    createPolygon(mapView, polygonCoords.jsonArray, nome, descrizione, multiPolygonStyle)?.let {
+                    createPolygon(mapView, polygonCoords.jsonArray, nome, descrizione, multiPolygonStyle, onClick)?.let {
                         mapView.overlays.add(it)
                         addedOverlays.add(it)
                     }
                 }
             }
 
-            else -> Log.w(TAG, "POI $poiId ($nome): tipo geometria non gestito '$type'")
+            else -> Log.w("GeoJsonHelper", "POI $poiId ($nome): tipo geometria non gestito '$type'")
         }
     } catch (e: Exception) {
-        Log.e(TAG, "Errore nel parsing GeoJSON per POI $poiId ($nome)", e)
+        Log.e("GeoJsonHelper", "Errore nel parsing GeoJSON per POI $poiId ($nome)", e)
     }
 
     return addedOverlays
@@ -94,13 +95,19 @@ private fun createMarker(
     mapView: MapView,
     coordinates: JsonArray,
     nome: String,
-    descrizione: String?
+    descrizione: String?,
+    onClick: () -> Unit
 ): Marker? {
     if (coordinates.size < 2) return null
     return Marker(mapView).apply {
         position = coordinates.toGeoPoint()
         title = nome
         snippet = descrizione
+        infoWindow = null
+        setOnMarkerClickListener { _, _ ->
+            onClick()
+            true
+        }
     }
 }
 
@@ -109,7 +116,8 @@ private fun createPolygon(
     coordinates: JsonArray,
     nome: String,
     descrizione: String?,
-    style: PolygonStyle
+    style: PolygonStyle,
+    onClick: () -> Unit
 ): Polygon? {
     if (coordinates.isEmpty()) return null
 
@@ -127,6 +135,10 @@ private fun createPolygon(
             holes = (1 until coordinates.size).map { i ->
                 coordinates[i].jsonArray.toGeoPoints()
             }
+        }
+        setOnClickListener { _, _, _ ->
+            onClick()
+            true
         }
     }
 }
