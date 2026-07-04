@@ -77,18 +77,23 @@ class EventoService:
     def update_evento_feedback(self, evento_id: int, evento_in: EventoUpdate) -> EventoPublic:
         query = text("""
             UPDATE evento 
-            SET feedback = :feedback, motivo = :motivo
+            SET feedback = COALESCE(:feedback, feedback), 
+                motivo = COALESCE(:motivo, motivo)
             WHERE id = :id
         """)
         
+        feedback_val = None
+        if evento_in.feedback:
+            feedback_val = evento_in.feedback.value if hasattr(evento_in.feedback, "value") else evento_in.feedback
+
         result = self.session.exec(query, params={
-            "feedback": evento_in.feedback,
+            "feedback": feedback_val,
             "motivo": evento_in.motivo,
             "id": evento_id
         })
         self.session.commit()
         
-        if result.rowcount == 0:
+        if hasattr(result, 'rowcount') and result.rowcount == 0:
             raise ValueError("Evento non trovato")
             
         return self.get_evento(evento_id)

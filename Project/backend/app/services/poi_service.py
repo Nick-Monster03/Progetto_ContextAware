@@ -248,7 +248,7 @@ class PoiService:
                     :radius
                 )
             """)
-        )
+        ).order_by(distance_expr)
 
         risultati_grezzi = self.session.exec(
             query, 
@@ -264,3 +264,15 @@ class PoiService:
             lista_risultati.append(poi_distance_obj)
             
         return lista_risultati
+    
+    def search_pois_by_name(self, query: str, campus: str | None = None) -> List[POI]:
+        """
+        Ricerca i POI tramite nome. Se il campus è fornito, filtra anche per campus.
+        """
+        statement = select(POI).where(POI.nome.ilike(f"%{query}%"))
+        
+        if campus:
+            statement = statement.where(POI.campus == campus)
+            
+        statement = statement.limit(10)
+        return self.session.exec(statement).all()

@@ -1,11 +1,16 @@
 package com.example.myapplication
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -20,12 +25,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myapplication.ui.agenda.AgendaUtenteView
+import com.example.myapplication.ui.agenda.AgendaUtenteViewModel
 import com.example.myapplication.ui.map.MapView
 import com.example.myapplication.ui.map.MapViewModel
 import com.example.myapplication.ui.navigation.RootNavigation
 import com.example.myapplication.ui.profile.ProfileView
 import com.example.myapplication.ui.profile.ProfileViewModel
+import com.example.myapplication.ui.storico.StoricoView
+import com.example.myapplication.ui.storico.StoricoViewModel
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -50,6 +60,7 @@ enum class AppDestinations(
     PROFILO("Profilo", R.drawable.outline_account_circle_24)
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MyApplicationApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.MAPPA) }
@@ -59,6 +70,14 @@ fun MyApplicationApp() {
     )
     val profileViewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModel.ProfileViewModelFactory(context)
+    )
+
+    val storicoViewModel: StoricoViewModel = viewModel(
+        factory = StoricoViewModel.StoricoViewModelFactory(context)
+    )
+
+    val agendaViewModel: AgendaUtenteViewModel = viewModel(
+        factory = AgendaUtenteViewModel.AgendaViewModelFactory(context)
     )
 
     NavigationSuiteScaffold(
@@ -83,8 +102,8 @@ fun MyApplicationApp() {
                 when (currentDestination) {
                     AppDestinations.MAPPA -> MapView(viewModel = mapViewModel)
 
-                    AppDestinations.AGENDA -> AgendaScreenStub()
-                    AppDestinations.STORICO -> HistoryScreenStub()
+                    AppDestinations.AGENDA -> AgendaUtenteView(viewModel = agendaViewModel)
+                    AppDestinations.STORICO -> StoricoView(viewModel = storicoViewModel)
                     AppDestinations.PROFILO -> ProfileView(viewModel = profileViewModel)
                 }
             }
@@ -109,7 +128,10 @@ fun AgendaScreenStub() {
 @Composable
 fun HistoryScreenStub() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Qui andrà lo Storico notifiche con i feedback (Utile/Non Utile)")
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Qui andranno le preferenze utente (Campus, Mezzi, Categorie POI)")
+            Spacer(modifier = Modifier.height(32.dp))
+        }
     }
 }
 

@@ -26,6 +26,15 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView as OsmMapView
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.example.myapplication.services.TrackingService
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -43,9 +52,58 @@ fun MapView(viewModel: MapViewModel) {
     val campus by viewModel.campus.collectAsState()
     val selectedPoi by viewModel.selectedPoi.collectAsState()
     val filterError by viewModel.filterError.collectAsState()
+    val userLocation by viewModel.userLocation.collectAsState()
+    val suggestionEvent by viewModel.suggestionEvent.collectAsState()
 
     var showBottomSheet by remember { mutableStateOf(false) }
+    val permissionsToRequest = remember {
+        mutableListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ).apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }.toTypedArray()
+    }
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissionsMap ->
+        val fineLocationGranted = permissionsMap[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val coarseLocationGranted = permissionsMap[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+        if (fineLocationGranted || coarseLocationGranted) {
+            val intent = Intent(context, TrackingService::class.java).apply {
+                action = TrackingService.ACTION_START
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val hasFineLocation = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasFineLocation) {
+            permissionLauncher.launch(permissionsToRequest)
+        } else {
+            val intent = Intent(context, TrackingService::class.java).apply {
+                action = TrackingService.ACTION_START
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+    }
     LaunchedEffect(Unit) {
         Configuration.getInstance().load(
             context,
@@ -77,11 +135,10 @@ fun MapView(viewModel: MapViewModel) {
         }
     }
 
-    // CORREZIONE FONDAMENTALE:
-    // Spostiamo il disegno dei POI fuori dall'update della View.
-    // Questo blocco di codice verrà eseguito SOLO quando la variabile "poiList" cambia.
+    //MARKER POI
     LaunchedEffect(poiList) {
-        mapView.overlays.clear()
+        mapView.overlays.removeAll { it !is org.osmdroid.views.overlay.Marker || it.id != "user_location" } // <-- ATTENZIONE QUI
+
         poiList.forEach { poi ->
             addGeoJsonToMap(
                 mapView = mapView,
@@ -95,11 +152,28 @@ fun MapView(viewModel: MapViewModel) {
         mapView.invalidate()
     }
 
+    //MARKER UTENTE
+    LaunchedEffect(userLocation) {
+        userLocation?.let { location ->
+            Log.d("MapView", "Disegno il marker utente a: ${location.latitude}, ${location.longitude}")
+
+            mapView.overlays.removeAll { it is org.osmdroid.views.overlay.Marker && it.id == "user_location" }
+            val userMarker = org.osmdroid.views.overlay.Marker(mapView).apply {
+                id = "user_location"
+                position = GeoPoint(location.latitude, location.longitude)
+                title = "Tu sei qui"
+                setAnchor(org.osmdroid.views.overlay.Marker.ANCHOR_CENTER, org.osmdroid.views.overlay.Marker.ANCHOR_BOTTOM)
+                icon = ContextCompat.getDrawable(context, R.drawable.ic_blue_dot)
+            }
+            mapView.overlays.add(userMarker)
+            mapView.postInvalidate()
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { mapView },
-            // L'update qui ora rimane vuoto, la gestione degli overlay l'abbiamo demandata al LaunchedEffect in alto
             update = { _ -> }
         )
 
@@ -117,12 +191,57 @@ fun MapView(viewModel: MapViewModel) {
             )
         }
 
+        if (suggestionEvent != null) {
+            Card(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter) // <-- Spostato in basso
+                    .padding(bottom = 80.dp, start = 16.dp, end = 16.dp) // <-- Padding inferiore
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(8.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.outline_emoji_objects_24),
+                            contentDescription = "Suggerimento",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+
+                        Text(
+                            text = "Suggerimento Context-Aware",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        IconButton(onClick = { viewModel.dismissSuggestion() }) {
+                            Icon(painterResource(id = android.R.drawable.ic_menu_close_clear_cancel), contentDescription = "Chiudi")
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = suggestionEvent!!.messaggio ?: "Nessun messaggio",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = suggestionEvent!!.motivo ?: "",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
         if (isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
 
-    // --- BOTTOM SHEET FILTRI ---
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },

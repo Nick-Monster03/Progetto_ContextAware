@@ -142,3 +142,34 @@ private fun createPolygon(
         }
     }
 }
+
+fun JsonElement.getCenterForGeofence(): Pair<Double, Double>? {
+    return try {
+        val jsonObj = this.jsonObject
+        val type = jsonObj["type"]?.jsonPrimitive?.content
+        val coordinates = jsonObj["coordinates"]?.jsonArray ?: return null
+
+        when (type) {
+            "Point" -> {
+                val geoPoint = coordinates.toGeoPoint()
+                Pair(geoPoint.latitude, geoPoint.longitude)
+            }
+            "Polygon" -> {
+                val outerRing = coordinates[0].jsonArray.toGeoPoints()
+                val avgLat = outerRing.map { it.latitude }.average()
+                val avgLon = outerRing.map { it.longitude }.average()
+                Pair(avgLat, avgLon)
+            }
+            "MultiPolygon" -> {
+                val outerRing = coordinates[0].jsonArray[0].jsonArray.toGeoPoints()
+                val avgLat = outerRing.map { it.latitude }.average()
+                val avgLon = outerRing.map { it.longitude }.average()
+                Pair(avgLat, avgLon)
+            }
+            else -> null
+        }
+    } catch (e: Exception) {
+        Log.e("GeoJsonHelper", "Errore nel calcolo del centro per Geofence", e)
+        null
+    }
+}

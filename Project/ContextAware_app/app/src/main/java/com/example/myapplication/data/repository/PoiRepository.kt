@@ -74,6 +74,15 @@ class PoiRepository(private val api: PoiApi) {
         }
     }
 
+    suspend fun searchPois(query: String, campus: String? = null): Result<List<POIPublic>> {
+        return try {
+            val response = api.searchPois(query = query, campus = campus)
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun updatePoi(poiId: Int, poiIn: POIUpdate): Result<POIPublic> {
         return try {
             val response = api.updatePoi(poiId, poiIn)

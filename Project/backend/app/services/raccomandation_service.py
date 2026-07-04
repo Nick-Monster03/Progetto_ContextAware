@@ -29,9 +29,10 @@ class RaccomandationService:
         elif mezzo_spostamento == "BICI A NOLEGGIO":
             nome_categoria = "noleggio_bici"
 
+        print(f"Mezzo di spostamento: {mezzo_spostamento}, Categoria corrispondente: {nome_categoria}")
+
         if not nome_categoria:
             return None
-
         query = select(CategoriaPOI.id).where(CategoriaPOI.nome == nome_categoria)
         return self.session.exec(query).first()
 
@@ -41,6 +42,7 @@ class RaccomandationService:
         orari di apertura, preferenze e mezzo di spostamento dell'utente.
         """
         pois_vicini = self.poi_service.get_pois_nearby_with_distance(lat, lon, radius_meters=2000.0)
+        
         utente = self.session.get(Utente, id_utente)
         categorie_preferite = self.get_user_preferences(id_utente)
 
@@ -67,8 +69,19 @@ class RaccomandationService:
                     "punteggio": round(punteggio, 2)
                 })
 
-        risultati_ranking.sort(key=lambda x: x["punteggio"], reverse=True)
-        
+
+        if not risultati_ranking and pois_vicini:
+            for poi in pois_vicini:
+                if self.poi_service.is_open(poi.id):
+                    if poi.distance <= 0:
+                        punteggio = 100.0
+                    else:
+                        punteggio = 100.0 / poi.distance
+                    risultati_ranking.append({
+                        "poi": poi,
+                        "punteggio": round(punteggio, 2)
+                    })
+                    break 
         return risultati_ranking
     
     def generate_startup_suggestion(self, id_utente: int, lat: float, lon: float) -> EventoPublic | dict:

@@ -29,6 +29,11 @@ interface PoiApi {
         @Query("radius") radius: Double = 2000.0
     ): List<POIDistance>
 
+    @GET("poi/search")
+    suspend fun searchPois(
+        @Query("query") query: String,
+        @Query("campus") campus: String? = null
+    ): List<POIPublic>
     @GET("poi/filter")
     suspend fun getFilteredPois(
         @Query("lat") lat: Double? = null,

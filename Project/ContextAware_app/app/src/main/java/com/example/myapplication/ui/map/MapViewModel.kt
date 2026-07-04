@@ -1,28 +1,38 @@
 package com.example.myapplication.ui.map
 
 import android.content.Context
+import android.health.connect.datatypes.ExerciseRoute
 import android.util.Log
 import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.CategoriaPOIPublic
+import com.example.myapplication.data.model.EventoPublic
 import com.example.myapplication.data.model.POIPublic
 import com.example.myapplication.data.remote.api.CategoriaPOIApi
 import com.example.myapplication.data.remote.api.PoiApi
+import com.example.myapplication.data.remote.api.RaccomandationApi
 import com.example.myapplication.data.repository.CategoriaPOIRepository
+import com.example.myapplication.data.repository.LocationRepository
 import com.example.myapplication.data.repository.PoiRepository
+import com.example.myapplication.data.repository.RaccomandationRepository
 import com.example.myapplication.utils.ApiClient
+import com.example.myapplication.utils.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Locale
+import android.location.Location
 import java.util.Locale.getDefault
 
 class MapViewModel(
     private val poiRepository: PoiRepository,
-    private val categoriaRepository: CategoriaPOIRepository
+    private val categoriaRepository: CategoriaPOIRepository,
+    private val raccomandationRepository: RaccomandationRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _poiList = MutableStateFlow<List<POIPublic>>(emptyList())
@@ -53,10 +63,45 @@ class MapViewModel(
 
     private val _filterError = MutableStateFlow<String?>(null)
     val filterError: StateFlow<String?> = _filterError.asStateFlow()
+    val userLocation = LocationRepository.currentLocation
+    private val _suggestionEvent = MutableStateFlow<EventoPublic?>(null)
+    val suggestionEvent: StateFlow<EventoPublic?> = _suggestionEvent.asStateFlow()
+
+    private var lastSuggestionLocation: Location? = null
 
     init {
         fetchCategories()
         applyFilters()
+
+        viewModelScope.launch {
+            Log.d("MapViewModel", "Inizio routine Context-Aware: attesa utente dal SessionManager...")
+
+            val user = sessionManager.loggedUser.first()
+            Log.d("MapViewModel", "Utente recuperato: ${user?.id} (se è null, il suggerimento non partirà)")
+
+            userLocation.collect { currentLoc ->
+                if (currentLoc == null) {
+                    Log.d("MapViewModel", "GPS: Posizione attuale è null, attendo...")
+                } else {
+                    Log.d("MapViewModel", "GPS: Nuova posizione ricevuta [Lat: ${currentLoc.latitude}, Lon: ${currentLoc.longitude}]")
+
+                    if (user != null) {
+                        val distance = lastSuggestionLocation?.distanceTo(currentLoc) ?: Float.MAX_VALUE
+                        Log.d("MapViewModel", "Distanza dall'ultimo suggerimento: $distance metri")
+
+                        if (distance > 100f) {
+                            Log.d("MapViewModel", "Spostamento significativo! Lancio getContextualSuggestion per utente ${user.id}...")
+                            lastSuggestionLocation = currentLoc
+                            getContextualSuggestion(idUtente = user.id)
+                        } else {
+                            Log.d("MapViewModel", "Spostamento troppo piccolo (<100m). Nessun nuovo suggerimento.")
+                        }
+                    } else {
+                        Log.w("MapViewModel", "ATTENZIONE: user è null, non posso richiedere il suggerimento!")
+                    }
+                }
+            }
+        }
     }
 
     private fun fetchCategories() {
@@ -161,17 +206,51 @@ class MapViewModel(
         }
     }
 
+    fun getContextualSuggestion(idUtente: Int) {
+        val currentLoc = userLocation.value
+
+        if (currentLoc != null) {
+            viewModelScope.launch {
+                val result = raccomandationRepository.generateStartupSuggestion(
+                    idUtente = idUtente,
+                    lat = currentLoc.latitude,
+                    lon = currentLoc.longitude
+                )
+
+                result.fold(
+                    onSuccess = { evento ->
+                        _suggestionEvent.value = evento
+                        Log.d("MapViewModel", "Suggerimento ricevuto: ${evento.messaggio}")
+                    },
+                    onFailure = { error ->
+                        Log.e("MapViewModel", "Errore suggerimento: ${error.message}")
+                    }
+                )
+            }
+        } else {
+            Log.w("MapViewModel", "Impossibile suggerire: Posizione GPS non ancora disponibile")
+        }
+    }
+
+    fun dismissSuggestion() {
+        _suggestionEvent.value = null
+    }
+
     class MapViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
                 val poiApi = ApiClient.retrofit.create(PoiApi::class.java)
                 val categoriaApi = ApiClient.retrofit.create(CategoriaPOIApi::class.java)
+                val sessionManager = SessionManager(context)
+
+                val raccomandationApi = ApiClient.retrofit.create(RaccomandationApi::class.java)
+                val raccomandationRepository = RaccomandationRepository(raccomandationApi)
 
                 val poiRepository = PoiRepository(poiApi)
                 val categoriaRepository = CategoriaPOIRepository(categoriaApi)
 
                 @Suppress("UNCHECKED_CAST")
-                return MapViewModel(poiRepository, categoriaRepository) as T
+                return MapViewModel(poiRepository, categoriaRepository, raccomandationRepository, sessionManager) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

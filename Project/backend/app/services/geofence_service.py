@@ -30,24 +30,14 @@ class GeofenceService:
 
     def get_geofence_config(self, id_utente: int) -> List[Dict[str, Any]]:
         """
-        Restituisce la lista dei POI da monitorare con il geofencing,
-        impostando il raggio corretto (10m per preferenze, 100m per mezzo di trasporto).
+        Restituisce la lista dei POI da monitorare con il geofencing.
+        Sfoltita: solo preferenze utente (no mezzi) e max 99 elementi per Android.
         """
         utente = self.session.get(Utente, id_utente)
         if not utente:
             raise ValueError("Utente non trovato")
 
         configurazioni = []
-        poi_aggiunti = set() 
-
-        if utente.mezzo_di_spostamento:
-            cat_mezzo_id = self._get_categoria_by_mezzo(utente.mezzo_di_spostamento)
-            if cat_mezzo_id:
-                query_mezzo = select(POI).where(POI.id_categoria == cat_mezzo_id)
-                pois_mezzo = self.session.exec(query_mezzo).all()
-                for p in pois_mezzo:
-                    configurazioni.append({"poi": p, "raggio": 100.0, "motivo": "Mezzo di spostamento"})
-                    poi_aggiunti.add(p.id)
 
         query_pref = select(PreferenzaUtente.id_categoria).where(PreferenzaUtente.id_utente == id_utente)
         categorie_preferite = self.session.exec(query_pref).all()
@@ -55,12 +45,15 @@ class GeofenceService:
         if categorie_preferite:
             query_poi_pref = select(POI).where(POI.id_categoria.in_(categorie_preferite))
             pois_pref = self.session.exec(query_poi_pref).all()
+            
             for p in pois_pref:
-                if p.id not in poi_aggiunti:
-                    configurazioni.append({"poi": p, "raggio": 10.0, "motivo": "Categoria preferita"})
-                    poi_aggiunti.add(p.id)
+                configurazioni.append({
+                    "poi": p, 
+                    "raggio": 10.0, 
+                    "motivo": "Categoria preferita"
+                })
 
-        return configurazioni
+        return configurazioni[:99] #carico i primi 99 perchè android ha un limite di 100 geofences
 
     def trigger_evento_geofence(
         self, id_utente: int, id_poi: int, lat: float, lon: float, is_enter: bool

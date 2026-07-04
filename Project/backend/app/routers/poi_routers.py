@@ -65,6 +65,17 @@ def get_pois_nearby_with_distance(
     """
     return service.get_pois_nearby_with_distance(lat=lat, lon=lon, radius_meters=radius)
 
+@router.get("/search", response_model=List[POIPublic])
+def search_pois(
+    query: str, 
+    campus: str | None = Query(default=None),
+    service: PoiService = Depends(get_poi_service)
+):
+    """
+    Ricerca POI per nome. Se viene passato il campus, i risultati sono contestualizzati.
+    """
+    return service.search_pois_by_name(query=query, campus=campus)
+
 @router.get("/filter", response_model=List[POIPublic])
 def get_filtered_pois(
     lat: float | None = Query(default=None),
