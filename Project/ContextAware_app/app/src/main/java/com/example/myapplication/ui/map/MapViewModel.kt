@@ -26,14 +26,20 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Locale
 import android.location.Location
+import com.example.myapplication.data.model.EventoCreate
 import com.example.myapplication.data.model.RankingResult
+import com.example.myapplication.data.model.TipoEvento
+import com.example.myapplication.data.remote.api.EventoApi
+import com.example.myapplication.data.repository.EventoRepository
 import kotlinx.coroutines.flow.firstOrNull
+import retrofit2.create
 import java.util.Locale.getDefault
 
 class MapViewModel(
     private val poiRepository: PoiRepository,
     private val categoriaRepository: CategoriaPOIRepository,
     private val raccomandationRepository: RaccomandationRepository,
+    private val eventoRepository: EventoRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -293,6 +299,29 @@ class MapViewModel(
         }
     }
 
+    fun registraClickMarker(poi: POIPublic) {
+        val currentLoc = userLocation.value
+        viewModelScope.launch {
+            val user = sessionManager.loggedUser.firstOrNull()
+            if (user != null && currentLoc != null) {
+                val nuovoEvento = EventoCreate(
+                    id_utente = user.id,
+                    id_poi = poi.id,
+                    tipo = TipoEvento.POI_SELEZIONATO,
+                    messaggio = "Hai selezionato il seguente luogo dalla mappa",
+                    motivo = "Marker cliccato",
+                    latitudine = currentLoc.latitude,
+                    longitudine = currentLoc.longitude
+                )
+
+                eventoRepository.createEvento(nuovoEvento).fold(
+                    onSuccess = { Log.d("MapViewModel", "Evento click salvato con successo: ${poi.nome}") },
+                    onFailure = { Log.e("MapViewModel", "Errore salvataggio click: ${it.message}") }
+                )
+            }
+        }
+    }
+
     fun dismissRankingSheet() {
         _showRankingSheet.value = false
     }
@@ -304,16 +333,17 @@ class MapViewModel(
             if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
                 val poiApi = ApiClient.retrofit.create(PoiApi::class.java)
                 val categoriaApi = ApiClient.retrofit.create(CategoriaPOIApi::class.java)
-                val sessionManager = SessionManager(context)
-
+                val eventoApi = ApiClient.retrofit.create(EventoApi::class.java)
                 val raccomandationApi = ApiClient.retrofit.create(RaccomandationApi::class.java)
-                val raccomandationRepository = RaccomandationRepository(raccomandationApi)
 
+                val sessionManager = SessionManager(context)
+                val raccomandationRepository = RaccomandationRepository(raccomandationApi)
+                val eventoRepository = EventoRepository(eventoApi)
                 val poiRepository = PoiRepository(poiApi)
                 val categoriaRepository = CategoriaPOIRepository(categoriaApi)
 
                 @Suppress("UNCHECKED_CAST")
-                return MapViewModel(poiRepository, categoriaRepository, raccomandationRepository, sessionManager) as T
+                return MapViewModel(poiRepository, categoriaRepository, raccomandationRepository, eventoRepository, sessionManager) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

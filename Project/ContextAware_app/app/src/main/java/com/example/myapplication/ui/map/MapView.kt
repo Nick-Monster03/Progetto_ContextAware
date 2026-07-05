@@ -159,7 +159,9 @@ fun MapView(viewModel: MapViewModel) {
                 nome = poi.nome,
                 descrizione = poi.descrizione ?: "Campus: ${poi.campus}",
                 jsonElement = poi.geometria,
-                onClick = { viewModel.selectPoi(poi) }
+                onClick = {
+                    viewModel.selectPoi(poi)
+                    viewModel.registraClickMarker(poi)}
             )
         }
         mapView.invalidate()

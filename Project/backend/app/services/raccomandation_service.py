@@ -47,6 +47,8 @@ class RaccomandationService:
         utente = self.session.get(Utente, id_utente)
         categorie_preferite = self.get_user_preferences(id_utente)
 
+        #print(f"categorie_preferite: {categorie_preferite}")
+
         if utente and utente.mezzo_di_spostamento:
             cat_mezzo_id = self.get_categoria_by_mezzo(utente.mezzo_di_spostamento)
             if cat_mezzo_id and cat_mezzo_id not in categorie_preferite:
@@ -81,9 +83,9 @@ class RaccomandationService:
         risultati_ranking = sorted(risultati_ranking, key=lambda x: x.punteggio, reverse=True)
         
         #DEBUG
-        # print(f"Ranking calcolato per utente {id_utente} in posizione ({lat}, {lon}):")
-        # for r in risultati_ranking:
-        #     print(f"POI: {r.poi.nome}, Punteggio: {r.punteggio}, Distanza: {r.poi.distance} metri, Categoria: {r.poi.id_categoria}")
+        #print(f"Ranking calcolato per utente {id_utente} in posizione ({lat}, {lon}):")
+        #for r in risultati_ranking:
+        #   print(f"POI: {r.poi.nome}, Punteggio: {r.punteggio}, Distanza: {r.poi.distance} metri, Categoria: {r.poi.id_categoria}")
         return risultati_ranking
     
     def get_ranking_list(self, id_utente: int, lat: float, lon: float)-> List[RankingResult]:

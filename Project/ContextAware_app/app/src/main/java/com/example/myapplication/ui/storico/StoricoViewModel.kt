@@ -31,7 +31,7 @@ class StoricoViewModel(
         loadEventi()
     }
 
-    private fun loadEventi() {
+    fun loadEventi() {
         viewModelScope.launch {
             _isLoading.value = true
             try {

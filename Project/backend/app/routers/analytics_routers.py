@@ -41,7 +41,7 @@ def get_dashboard_completa(service: AnalyticsService = Depends(get_analytics_ser
     return service.get_dashboard_stats()
 
 @router.get("/heatmap/pois", response_model=List[HeatmapPoint])
-def get_poi_heatmap(id_utente: int | None, service: AnalyticsService = Depends(get_analytics_service)):
+def get_poi_heatmap(id_utente: int | None = None, service: AnalyticsService = Depends(get_analytics_service)):
     """
     Restituisce i centroidi (lat, lon) dei POI coinvolti nei suggerimenti.
     Può essere globale (tutti gli utenti) o mirata al singolo utente se viene passato l'id_utente.

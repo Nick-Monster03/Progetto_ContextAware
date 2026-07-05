@@ -26,8 +26,8 @@ class AnalyticsService:
         
         query = text("""
             SELECT feedback, COUNT(id) as conteggio
-            FROM evento
-            WHERE feedback IS NOT NULL
+            FROM evento 
+            WHERE feedback IS NOT NULL AND tipo = 'Suggerimento'
             GROUP BY feedback
         """)
 
