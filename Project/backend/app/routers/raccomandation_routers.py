@@ -8,6 +8,7 @@ from session.database import get_session
 from services.poi_service import PoiService
 from services.raccomandation_service import RaccomandationService
 from models.poi import POIDistance
+from models.ranking import RankingResult
 
 router = APIRouter(prefix="/recommendations", tags=["Raccomandazioni"])
 
@@ -20,7 +21,7 @@ def get_recommendation_service(session: Session = Depends(get_session),
     return RaccomandationService(session, poi_service)
 
 
-@router.get("/ranking")
+@router.get("/ranking", response_model=List[RankingResult])
 def get_ranking(id_utente: int, lat: float, lon: float, service: RaccomandationService = Depends(get_recommendation_service)):
     return service.calculate_ranking(id_utente=id_utente, lat=lat, lon=lon)
 
@@ -31,3 +32,11 @@ def trigger_startup_suggestion(id_utente: int, lat: float, lon: float, service: 
     un Evento di tipo 'Suggerimento' salvandolo a DB.
     """
     return service.generate_startup_suggestion(id_utente=id_utente, lat=lat, lon=lon)
+
+@router.get("/top_20_ranking", response_model=List[RankingResult])
+def get_servizi_ordinati(id_utente: int, lat: float, lon: float, service: RaccomandationService = Depends(get_recommendation_service)):
+    """
+    Restituisce i primi 20 servizi vicini ordinati per rilevanza (punteggio contestuale).
+    """
+    risultati = service.get_ranking_list(id_utente, lat, lon)
+    return risultati

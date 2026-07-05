@@ -31,10 +31,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.example.myapplication.services.TrackingService
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -54,6 +57,8 @@ fun MapView(viewModel: MapViewModel) {
     val filterError by viewModel.filterError.collectAsState()
     val userLocation by viewModel.userLocation.collectAsState()
     val suggestionEvent by viewModel.suggestionEvent.collectAsState()
+    val rankingList by viewModel.rankingList.collectAsState()
+    val showRankingSheet by viewModel.showRankingSheet.collectAsState()
 
     var showBottomSheet by remember { mutableStateOf(false) }
     val permissionsToRequest = remember {
@@ -82,6 +87,14 @@ fun MapView(viewModel: MapViewModel) {
             } else {
                 context.startService(intent)
             }
+        }
+    }
+    val uiMessage by viewModel.uiMessage.collectAsState()
+
+    LaunchedEffect(uiMessage) {
+        uiMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.clearUiMessage()
         }
     }
 
@@ -177,25 +190,42 @@ fun MapView(viewModel: MapViewModel) {
             update = { _ -> }
         )
 
-        SmallFloatingActionButton(
-            onClick = { showBottomSheet = true },
+        Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.primary
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.outline_add_2_24),
-                contentDescription = "Filtri"
-            )
+            // Pulsante filtri
+            SmallFloatingActionButton(
+                onClick = { showBottomSheet = true },
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.outline_add_2_24),
+                    contentDescription = "Filtri"
+                )
+            }
+
+            // Pulsante top 20 ranking
+            SmallFloatingActionButton(
+                onClick = { viewModel.fetchRankingList() },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(
+                    painter = painterResource(id = org.osmdroid.library.R.drawable.ic_menu_mylocation),
+                    contentDescription = "Servizi Vicini"
+                )
+            }
         }
 
         if (suggestionEvent != null) {
             Card(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter) // <-- Spostato in basso
-                    .padding(bottom = 80.dp, start = 16.dp, end = 16.dp) // <-- Padding inferiore
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 80.dp, start = 16.dp, end = 16.dp)
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(8.dp),
@@ -392,6 +422,53 @@ fun MapView(viewModel: MapViewModel) {
                 }
 
                 Spacer(modifier = Modifier.height(48.dp))
+            }
+        }
+    }
+    if (showRankingSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.dismissRankingSheet() },
+            modifier = Modifier.fillMaxHeight(0.8f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
+                Text(
+                    "Servizi Consigliati",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text("Ordinati in base a posizione, orari e preferenze", style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (rankingList.isEmpty()) {
+                    Text("Nessun servizio disponibile o aperto nelle vicinanze.")
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(rankingList) { item ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(item.poi.nome, style = MaterialTheme.typography.titleMedium)
+                                        Text("Categoria: ${viewModel.getCategoryNameForPoi(item.poi)}", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.primary
+                                    ) {
+                                        Text(
+                                            text = "Pt: ${String.format("%.2f", item.punteggio)}",
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            color = MaterialTheme.colorScheme.onPrimary,
+                                            style = MaterialTheme.typography.labelLarge
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

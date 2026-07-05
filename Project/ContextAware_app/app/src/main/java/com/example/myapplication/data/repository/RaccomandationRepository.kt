@@ -39,4 +39,23 @@ class RaccomandationRepository(private val api: RaccomandationApi) {
             }
         }
     }
+
+    suspend fun getRankingList(idUtente: Int, lat: Double, lon: Double): Result<List<RankingResult>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.getRankingList(idUtente, lat, lon)
+                val body = response.body()
+
+                if (response.isSuccessful && body != null) {
+                    Result.success(body)
+                } else {
+                    Result.failure(Exception("Errore API Suggerimento: ${response.code()} - ${response.message()}"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+
 }

@@ -1,5 +1,6 @@
 from sqlmodel import Session, select
 from typing import List, Dict, Any
+from models.ranking import RankingResult
 from models.evento import Evento, EventoPublic, TipoEvento
 from models.preferenza_utente import PreferenzaUtente
 from models.utente import Utente
@@ -36,7 +37,7 @@ class RaccomandationService:
         query = select(CategoriaPOI.id).where(CategoriaPOI.nome == nome_categoria)
         return self.session.exec(query).first()
 
-    def calculate_ranking(self, id_utente: int, lat: float, lon: float) -> List[Dict[str, Any]]:
+    def calculate_ranking(self, id_utente: int, lat: float, lon: float) -> List[RankingResult]:
         """
         Calcola il ranking contestuale per i POI vicini in base a distanza, 
         orari di apertura, preferenze e mezzo di spostamento dell'utente.
@@ -56,33 +57,48 @@ class RaccomandationService:
         for item in pois_vicini:
             poi = item  
             if poi.distance <= 0:
-                punteggio = 100.0
+                punteggio = 1000.0
             else:
-                punteggio = 100.0 / poi.distance
+                punteggio = 1000.0 / poi.distance
             if poi.id_categoria in categorie_preferite:
-                punteggio = punteggio * 1.5
+                punteggio = punteggio * 2.5
             if not self.poi_service.is_open(poi.id):
                 punteggio = punteggio * 0.0
             if punteggio > 0:
-                risultati_ranking.append({
-                    "poi": poi,
-                    "punteggio": round(punteggio, 2)
-                })
+                risultati_ranking.append(RankingResult(poi=poi, punteggio=round(punteggio, 2)))
 
 
         if not risultati_ranking and pois_vicini:
             for poi in pois_vicini:
                 if self.poi_service.is_open(poi.id):
                     if poi.distance <= 0:
-                        punteggio = 100.0
+                        punteggio = 1000.0
                     else:
-                        punteggio = 100.0 / poi.distance
-                    risultati_ranking.append({
-                        "poi": poi,
-                        "punteggio": round(punteggio, 2)
-                    })
+                        punteggio = 1000.0 / poi.distance
+                    risultati_ranking.append(RankingResult(poi=poi, punteggio=round(punteggio, 2)))
                     break 
+        
+        risultati_ranking = sorted(risultati_ranking, key=lambda x: x.punteggio, reverse=True)
+        
+        #DEBUG
+        # print(f"Ranking calcolato per utente {id_utente} in posizione ({lat}, {lon}):")
+        # for r in risultati_ranking:
+        #     print(f"POI: {r.poi.nome}, Punteggio: {r.punteggio}, Distanza: {r.poi.distance} metri, Categoria: {r.poi.id_categoria}")
         return risultati_ranking
+    
+    def get_ranking_list(self, id_utente: int, lat: float, lon: float)-> List[RankingResult]:
+        """
+        Restituisce la lista dei primi 20 POI ordinati per ranking.
+        """
+        ranking = self.calculate_ranking(id_utente, lat, lon)
+        
+        ranking = list(filter(lambda x: x.punteggio > 0, ranking))
+
+        if not ranking:
+            return []
+    
+        ranking = sorted(ranking, key=lambda x: x.punteggio, reverse=True)
+        return ranking[:20]
     
     def generate_startup_suggestion(self, id_utente: int, lat: float, lon: float) -> EventoPublic | dict:
         """
@@ -95,8 +111,8 @@ class RaccomandationService:
             return {"message": "Nessun POI nelle vicinanze o tutti chiusi."}
 
         miglior_risultato = ranking[0]
-        miglior_poi = miglior_risultato["poi"]
-        punteggio = miglior_risultato["punteggio"]
+        miglior_poi = miglior_risultato.poi
+        punteggio = miglior_risultato.punteggio
 
         nuovo_evento = Evento(
             id_utente=id_utente,

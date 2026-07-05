@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Locale
 import android.location.Location
+import com.example.myapplication.data.model.RankingResult
+import kotlinx.coroutines.flow.firstOrNull
 import java.util.Locale.getDefault
 
 class MapViewModel(
@@ -67,7 +69,17 @@ class MapViewModel(
     private val _suggestionEvent = MutableStateFlow<EventoPublic?>(null)
     val suggestionEvent: StateFlow<EventoPublic?> = _suggestionEvent.asStateFlow()
 
+    private val _rankingList = MutableStateFlow<List<RankingResult>>(emptyList())
+    val rankingList: StateFlow<List<RankingResult>> = _rankingList.asStateFlow()
+
+    private val _showRankingSheet = MutableStateFlow(false)
+    val showRankingSheet: StateFlow<Boolean> = _showRankingSheet.asStateFlow()
+
     private var lastSuggestionLocation: Location? = null
+    private val _uiMessage = MutableStateFlow<String?>(null)
+    val uiMessage: StateFlow<String?> = _uiMessage.asStateFlow()
+
+
 
     init {
         fetchCategories()
@@ -235,6 +247,57 @@ class MapViewModel(
     fun dismissSuggestion() {
         _suggestionEvent.value = null
     }
+
+    fun fetchRankingList() {
+        Log.d("MapViewModel", "Pulsante 'Servizi Vicini' premuto!")
+        val currentLoc = userLocation.value
+
+        viewModelScope.launch {
+            val user = sessionManager.loggedUser.firstOrNull()
+
+            Log.d("MapViewModel", "Stato per Ranking - Utente ID: ${user?.id}, Posizione GPS: ${currentLoc?.latitude}, ${currentLoc?.longitude}")
+
+            if (user != null && currentLoc != null) {
+                Log.d("MapViewModel", "Avvio chiamata API getRankingList...")
+                _isLoading.value = true
+
+                val result = raccomandationRepository.getRankingList(
+                    idUtente = user.id,
+                    lat = currentLoc.latitude,
+                    lon = currentLoc.longitude
+                )
+
+                result.fold(
+                    onSuccess = { list ->
+                        Log.d("MapViewModel", "Chiamata API completata! Trovati ${list.size} servizi.")
+                        _rankingList.value = list
+                        _showRankingSheet.value = true
+                    },
+                    onFailure = { error ->
+                        Log.e("MapViewModel", "Errore API fetch ranking: ${error.message}")
+                    }
+                )
+                _isLoading.value = false
+            } else {
+                if (currentLoc == null) {
+                    _uiMessage.value = "Attendi il segnale GPS prima di cercare i servizi."
+                    Log.w("MapViewModel", "Impossibile caricare il ranking: La posizione GPS non è ancora disponibile!")
+                }
+                if (user == null) {
+                    Log.w(
+                        "MapViewModel",
+                        "Impossibile caricare il ranking: L'utente non è loggato o il SessionManager è vuoto!"
+                    )
+                }
+            }
+        }
+    }
+
+    fun dismissRankingSheet() {
+        _showRankingSheet.value = false
+    }
+
+    fun clearUiMessage() { _uiMessage.value = null }
 
     class MapViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

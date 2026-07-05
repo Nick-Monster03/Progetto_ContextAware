@@ -22,4 +22,11 @@ interface RaccomandationApi {
         @Query("lat") lat: Double,
         @Query("lon") lon: Double
     ): Response<EventoPublic>
+
+    @GET("recommendations/top_20_ranking")
+    suspend fun getRankingList(
+        @Query("id_utente") idUtente: Int,
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double
+    ): Response<List<RankingResult>>
 }
