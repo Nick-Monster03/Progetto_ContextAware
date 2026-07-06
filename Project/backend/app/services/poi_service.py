@@ -1,7 +1,7 @@
 from datetime import datetime, time
-from tkinter.tix import Select
 from typing import Any, Dict, List
 from fastapi import HTTPException, status
+from sqlalchemy import Select
 from sqlmodel import Session, select, text
 from models.categooria_poi import CategoriaPOI
 from models.poi import POI, POICreate, POIDistance, POIUpdate, POIPublic

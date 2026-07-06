@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'http://localhost:8000';
 
 // Etichetta, codice a 3 lettere (stile legenda cartografica) e colore per ogni categoria.
 const CATEGORIE_META = {

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: context_aware_db
+    environment:
+      POSTGRES_USER: postgres           
+      POSTGRES_PASSWORD: changeme       
+      POSTGRES_DB: ProgettoCAS    
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: context_aware_backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:changeme@db:5432/ProgettoCAS
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: context_aware_frontend
+    ports:
+      - "5500:80"   
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
