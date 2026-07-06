@@ -114,44 +114,61 @@ class PoiService:
             params["cat_nome"] = categoria_mappata
         return query
 
-    def _filter_by_orario(
-        self, query: Select, params: Dict[str, Any], orario_apertura: time | None, orario_chiusura: time | None
-    ) -> Select:
-        """Filtra i POI in base a un orario desiderato (include i POI H24 senza orari)."""
+    def _filter_by_orario(self, query: Select, params: Dict[str, Any], orario_apertura: time | None, orario_chiusura: time | None) -> Select:
+        """Filtra i POI in base a un orario desiderato (include i POI H24 senza orari).
+        Gestisce correttamente intervalli o singoli orari (se uno dei due è None).
+        """
         if orario_apertura is None and orario_chiusura is None:
             return query
 
         now = datetime.now()
-        giorno_db = (now.weekday() + 1) % 7
-        params["giorno"] = giorno_db
+        giorno_oggi = (now.weekday() + 1) % 7
+        giorno_ieri = (giorno_oggi - 1) % 7
 
-        where_clauses = [
-            "orario_poi.id_poi = poi.id",
-            "orario_poi.giorno = :giorno"
-        ]
+        
+        req_apertura = orario_apertura if orario_apertura is not None else orario_chiusura
+        req_fine = orario_chiusura if orario_chiusura is not None else orario_apertura
 
-        if orario_apertura is not None:
-            where_clauses.append("orario_poi.orario_apertura <= :orario_apertura")
-            params["orario_apertura"] = orario_apertura
-
-        if orario_chiusura is not None:
-            where_clauses.append("orario_poi.orario_chiusura >= :orario_chiusura")
-            params["orario_chiusura"] = orario_chiusura
-
-        clausole_sql = " AND ".join(where_clauses)
+        params["giorno_oggi"] = giorno_oggi
+        params["giorno_ieri"] = giorno_ieri
+        params["req_apertura"] = req_apertura
+        params["req_fine"] = req_fine
 
         query = query.where(
-            text(f"""
+            text("""
                 (
                     EXISTS (
                         SELECT 1 FROM orario_poi 
-                        WHERE {clausole_sql}
+                        WHERE orario_poi.id_poi = poi.id AND (
+                            (
+                                orario_poi.giorno = :giorno_oggi
+                                AND orario_poi.orario_apertura <= orario_poi.orario_chiusura
+                                AND orario_poi.orario_apertura <= :req_apertura
+                                AND orario_poi.orario_chiusura >= :req_fine
+                                AND :req_apertura <= :req_fine -- Vero se è un istante singolo o intervallo normale
+                            )
+                            OR
+                            (
+                                orario_poi.giorno = :giorno_oggi
+                                AND orario_poi.orario_apertura > orario_poi.orario_chiusura
+                                AND orario_poi.orario_apertura <= :req_apertura
+                                AND (
+                                    (:req_apertura > :req_fine AND orario_poi.orario_chiusura >= :req_fine)
+                                    OR
+                                    (:req_apertura <= :req_fine)
+                                )
+                            )
+                            OR
+                            (
+                                orario_poi.giorno = :giorno_ieri
+                                AND orario_poi.orario_apertura > orario_poi.orario_chiusura
+                                AND orario_poi.orario_chiusura >= :req_fine
+                                AND :req_apertura <= :req_fine
+                            )
+                        )
                     )
                     OR
-                    NOT EXISTS (
-                        SELECT 1 FROM orario_poi 
-                        WHERE orario_poi.id_poi = poi.id
-                    )
+                    NOT EXISTS (SELECT 1 FROM orario_poi WHERE orario_poi.id_poi = poi.id)
                 )
             """)
         )

@@ -7,8 +7,8 @@ class OrariPoiService:
         self.session = session
 
     def create_orario(self, orario_in: Orari_PoiCreate) -> Orari_Poi:
-        if orario_in.orario_chiusura <= orario_in.orario_apertura:
-            raise ValueError("L'orario di chiusura deve essere successivo all'orario di apertura.")
+        # if orario_in.orario_chiusura <= orario_in.orario_apertura:
+        #     raise ValueError("L'orario di chiusura deve essere successivo all'orario di apertura.")
 
         statement = select(Orari_Poi).where(
             Orari_Poi.id_poi == orario_in.id_poi,
@@ -43,8 +43,8 @@ class OrariPoiService:
         new_apertura = orario_data.get("orario_apertura", db_orario.orario_apertura)
         new_chiusura = orario_data.get("orario_chiusura", db_orario.orario_chiusura)
         
-        if new_chiusura <= new_apertura:
-            raise ValueError("L'orario di chiusura deve essere successivo all'orario di apertura.")
+        # if new_chiusura <= new_apertura:
+        #     raise ValueError("L'orario di chiusura deve essere successivo all'orario di apertura.")
 
         db_orario.sqlmodel_update(orario_data)
 

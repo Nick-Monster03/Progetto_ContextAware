@@ -14,8 +14,9 @@ def get_poi_service(session: Session = Depends(get_session)) -> PoiService:
     return PoiService(session)
 
 def parse_orario(orario_str: str | None) -> time | None:
-        """Prende una stringa orario (es. '8:00' o '19:30'), aggiunge lo zero se manca e la converte in time."""
-        
+        """Prende una stringa orario (es. '8:00' o '19:30'), aggiunge lo zero se manca e la converte in time.
+           Utile durante i primi Test effettuati su swagger. """
+
         if not orario_str:
             return None
         

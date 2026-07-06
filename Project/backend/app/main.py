@@ -3,13 +3,21 @@ from sqlmodel import Session, select
 from models.utente import Utente
 from session.database import get_session
 from routers import utente_routers, poi_routers, categoria_routers, evento_routers, preferenza_routers, orari_routers, agenda_utente_routers, raccomandation_routers, geofence_routers, analytics_routers, auth_routers
-
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Context-Aware Campus Assistant",
     description="API di backend per il sistema Campus Assistant con supporto PostGIS",
     version="1.0.0"
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+) #FONTE:https://stackoverflow.com/questions/79415742/my-fastapi-service-is-giving-cors-errors-from-my-website-running-on-localhost-wh
 
 #Tutte le route per ogni Tabella del DB
 app.include_router(utente_routers.router)
