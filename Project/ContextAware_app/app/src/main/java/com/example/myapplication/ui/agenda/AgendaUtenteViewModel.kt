@@ -16,6 +16,7 @@ import com.example.myapplication.utils.ApiClient
 import com.example.myapplication.utils.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -26,13 +27,16 @@ class AgendaUtenteViewModel(
 ) : ViewModel() {
 
     private val _impegni = MutableStateFlow<List<AgendaUtentePublic>>(emptyList())
-    val impegni: StateFlow<List<AgendaUtentePublic>> = _impegni
+    val impegni: StateFlow<List<AgendaUtentePublic>> = _impegni.asStateFlow()
 
     private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _poiSearchResults = MutableStateFlow<List<POIPublic>>(emptyList())
-    val poiSearchResults: StateFlow<List<POIPublic>> = _poiSearchResults
+    val poiSearchResults: StateFlow<List<POIPublic>> = _poiSearchResults.asStateFlow()
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     init {
         loadAgenda()
@@ -45,8 +49,11 @@ class AgendaUtenteViewModel(
                 val user = sessionManager.loggedUser.first()
                 if (user != null) {
                     val result = agendaRepo.getAgendaUtente(user.id, soloFuturi = true)
+
                     result.onSuccess { list ->
                         _impegni.value = list
+                    }.onFailure { error ->
+                        _errorMessage.value = error.message ?: "Errore durante il caricamento dell'agenda"
                     }
                 }
             } finally {
@@ -82,11 +89,21 @@ class AgendaUtenteViewModel(
             )
 
             val result = agendaRepo.createImpegno(nuovoImpegno)
-            result.onSuccess {
-                loadAgenda()
-                onSuccess()
-            }
+
+            result.fold(
+                onSuccess = {
+                    loadAgenda()
+                    onSuccess()
+                },
+                onFailure = { error ->
+                    _errorMessage.value = error.message ?: "Impossibile creare l'appuntamento."
+                }
+            )
         }
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 
     class AgendaViewModelFactory(
@@ -94,14 +111,15 @@ class AgendaUtenteViewModel(
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AgendaUtenteViewModel::class.java)) {
+                // 1. Inizializza il DB locale
                 val database = ContextAwareDatabase.getDatabase(context)
+
                 val agendaApi = ApiClient.retrofit.create(AgendaUtenteApi::class.java)
                 val poiApi = ApiClient.retrofit.create(PoiApi::class.java)
 
-                val agendaRepo = AgendaUtenteRepository(agendaApi)
-                val poiRepo = PoiRepository(poiApi, database.poiDao() )
-
-
+                // 2. Passa il DAO all'AgendaUtenteRepository!
+                val agendaRepo = AgendaUtenteRepository(agendaApi, database.agendaUtenteDao())
+                val poiRepo = PoiRepository(poiApi, database.poiDao())
                 val sessionManager = SessionManager(context)
 
                 @Suppress("UNCHECKED_CAST")
@@ -111,4 +129,3 @@ class AgendaUtenteViewModel(
         }
     }
 }
-
