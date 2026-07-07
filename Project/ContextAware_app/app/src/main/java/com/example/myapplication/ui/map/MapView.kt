@@ -170,7 +170,7 @@ fun MapView(viewModel: MapViewModel) {
     //MARKER UTENTE
     LaunchedEffect(userLocation) {
         userLocation?.let { location ->
-            Log.d("MapView", "Disegno il marker utente a: ${location.latitude}, ${location.longitude}")
+            //Log.d("MapView", "Disegno il marker utente a: ${location.latitude}, ${location.longitude}")
 
             mapView.overlays.removeAll { it is org.osmdroid.views.overlay.Marker && it.id == "user_location" }
             val userMarker = org.osmdroid.views.overlay.Marker(mapView).apply {
@@ -366,7 +366,7 @@ fun MapView(viewModel: MapViewModel) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
                     Button(
                         onClick = {
-                            viewModel.applyFilters()
+                            viewModel.applyFilters(userLocation?.latitude, userLocation?.longitude)
                             if (filterError == null) {
                                 showBottomSheet = false
                             }

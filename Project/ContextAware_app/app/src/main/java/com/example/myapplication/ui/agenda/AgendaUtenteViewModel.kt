@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.local.ContextAwareDatabase
 import com.example.myapplication.data.model.AgendaUtenteCreate
 import com.example.myapplication.data.model.AgendaUtentePublic
 import com.example.myapplication.data.model.POIPublic
@@ -93,12 +94,13 @@ class AgendaUtenteViewModel(
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AgendaUtenteViewModel::class.java)) {
-
+                val database = ContextAwareDatabase.getDatabase(context)
                 val agendaApi = ApiClient.retrofit.create(AgendaUtenteApi::class.java)
                 val poiApi = ApiClient.retrofit.create(PoiApi::class.java)
 
                 val agendaRepo = AgendaUtenteRepository(agendaApi)
-                val poiRepo = PoiRepository(poiApi)
+                val poiRepo = PoiRepository(poiApi, database.poiDao() )
+
 
                 val sessionManager = SessionManager(context)
 

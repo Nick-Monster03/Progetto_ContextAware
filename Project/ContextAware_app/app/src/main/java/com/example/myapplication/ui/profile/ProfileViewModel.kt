@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.local.ContextAwareDatabase
 import com.example.myapplication.data.model.CategoriaPOIPublic
 import com.example.myapplication.data.model.MezzoSpostamento
 import com.example.myapplication.data.model.PreferenzaUtenteCreate
@@ -200,6 +201,7 @@ class ProfileViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
                 val sessionManager = SessionManager(context)
+                val database = ContextAwareDatabase.getDatabase(context)
 
                 val utenteApi = ApiClient.retrofit.create(UtenteApi::class.java)
                 val preferenzaApi = ApiClient.retrofit.create(PreferenzaUtenteApi::class.java)
@@ -207,7 +209,7 @@ class ProfileViewModel(
 
                 val utenteRepository = UtenteRepository(utenteApi)
                 val preferenzaRepository = PreferenzaUtenteRepository(preferenzaApi)
-                val categoriaRepository = CategoriaPOIRepository(categoriaApi)
+                val categoriaRepository = CategoriaPOIRepository(categoriaApi, database.categoriaDao())
 
                 @Suppress("UNCHECKED_CAST")
                 return ProfileViewModel(

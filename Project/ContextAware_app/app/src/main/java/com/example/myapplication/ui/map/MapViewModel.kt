@@ -26,11 +26,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Locale
 import android.location.Location
+import com.example.myapplication.data.local.ContextAwareDatabase
 import com.example.myapplication.data.model.EventoCreate
 import com.example.myapplication.data.model.RankingResult
 import com.example.myapplication.data.model.TipoEvento
 import com.example.myapplication.data.remote.api.EventoApi
+import com.example.myapplication.data.remote.api.OrariPoiApi
 import com.example.myapplication.data.repository.EventoRepository
+import com.example.myapplication.data.repository.OrariPoiRepository
 import kotlinx.coroutines.flow.firstOrNull
 import retrofit2.create
 import java.util.Locale.getDefault
@@ -40,6 +43,7 @@ class MapViewModel(
     private val categoriaRepository: CategoriaPOIRepository,
     private val raccomandationRepository: RaccomandationRepository,
     private val eventoRepository: EventoRepository,
+    private val orariPoiRepository: OrariPoiRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -89,13 +93,13 @@ class MapViewModel(
 
     init {
         fetchCategories()
-        applyFilters()
-
+        fetchPoisAndOrari() //questo metodo si occupa solo di salvari i POI e i rispettivi orari del dtabase offline
+        applyFilters(userLocation.value?.latitude, userLocation.value?.longitude)
         viewModelScope.launch {
-            Log.d("MapViewModel", "Inizio routine Context-Aware: attesa utente dal SessionManager...")
+            //Log.d("MapViewModel", "Inizio routine Context-Aware: attesa utente dal SessionManager...")
 
             val user = sessionManager.loggedUser.first()
-            Log.d("MapViewModel", "Utente recuperato: ${user?.id} (se è null, il suggerimento non partirà)")
+            //Log.d("MapViewModel", "Utente recuperato: ${user?.id} (se è null, il suggerimento non partirà)")
 
             userLocation.collect { currentLoc ->
                 if (currentLoc == null) {
@@ -189,6 +193,7 @@ class MapViewModel(
                 return
             }
         }
+        //Log.d("poszione ffiltri", "i filtri sono da ${userLat} e ${userLon}");
         _filterError.value = null
 
         _isLoading.value = true
@@ -207,6 +212,8 @@ class MapViewModel(
                 orarioChiusura = chiusura,
                 campus = _campus.value
             )
+            Log.d("MapViewModel", "Distance = ${_maxDistance.value}")
+
 
             result.fold(
                 onSuccess = { pois ->
@@ -221,6 +228,18 @@ class MapViewModel(
                     _filterError.value = "Errore durante il recupero dei dati"
                 }
             )
+        }
+    }
+
+    fun fetchPoisAndOrari() {
+        viewModelScope.launch {
+            val resultPois = poiRepository.getAllPois()
+
+            if (resultPois.isSuccess) {
+                val pois = resultPois.getOrNull() ?: emptyList()
+                val listaId = pois.map { it.id }
+                orariPoiRepository.salvaOrariPerTuttiIPoi(listaId)
+            }
         }
     }
 
@@ -335,15 +354,17 @@ class MapViewModel(
                 val categoriaApi = ApiClient.retrofit.create(CategoriaPOIApi::class.java)
                 val eventoApi = ApiClient.retrofit.create(EventoApi::class.java)
                 val raccomandationApi = ApiClient.retrofit.create(RaccomandationApi::class.java)
+                val orarioApi = ApiClient.retrofit.create(OrariPoiApi::class.java)
+                val database = ContextAwareDatabase.getDatabase(context)
 
                 val sessionManager = SessionManager(context)
                 val raccomandationRepository = RaccomandationRepository(raccomandationApi)
                 val eventoRepository = EventoRepository(eventoApi)
-                val poiRepository = PoiRepository(poiApi)
-                val categoriaRepository = CategoriaPOIRepository(categoriaApi)
-
+                val poiRepository = PoiRepository(poiApi, database.poiDao())
+                val categoriaRepository = CategoriaPOIRepository(categoriaApi, database.categoriaDao())
+                val orariPoiRepository = OrariPoiRepository(orarioApi, database.orarioDao())
                 @Suppress("UNCHECKED_CAST")
-                return MapViewModel(poiRepository, categoriaRepository, raccomandationRepository, eventoRepository, sessionManager) as T
+                return MapViewModel(poiRepository, categoriaRepository, raccomandationRepository, eventoRepository, orariPoiRepository,sessionManager) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

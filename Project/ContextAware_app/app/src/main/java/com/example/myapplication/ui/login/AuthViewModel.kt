@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.local.ContextAwareDatabase
 import com.example.myapplication.utils.SessionManager
 import com.example.myapplication.data.model.LoginRequest
 import com.example.myapplication.data.model.MezzoSpostamento
@@ -86,12 +87,14 @@ class AuthViewModel(
 
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
-                val api = ApiClient.retrofit.create(AuthApi::class.java)
-                val repository = AuthRepository(api)
+                val authApi = ApiClient.retrofit.create(AuthApi::class.java)
+                val database = ContextAwareDatabase.getDatabase(context)
+
+                val authRepository = AuthRepository(authApi, database.authDao())
                 val sessionManager = SessionManager(context)
 
                 @Suppress("UNCHECKED_CAST")
-                return AuthViewModel(repository, sessionManager) as T
+                return AuthViewModel(authRepository, sessionManager) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
