@@ -1,5 +1,7 @@
 package com.example.myapplication.data.repository
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.example.myapplication.data.local.dao.AgendaUtenteDao
 import com.example.myapplication.data.local.entities.AgendaUtenteEntity
 import com.example.myapplication.data.model.AgendaUtenteContext
@@ -14,6 +16,7 @@ class AgendaUtenteRepository(
     private val api: AgendaUtenteApi,
     private val agendaDao: AgendaUtenteDao
 ) {
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun getAgendaUtente(idUtente: Int, soloFuturi: Boolean = false): Result<List<AgendaUtentePublic>> {
         return try {
             val response = api.getAgendaUtente(idUtente, soloFuturi)
@@ -22,7 +25,8 @@ class AgendaUtenteRepository(
             Result.success(response)
         } catch (e: IOException) {
             try {
-                val cached = agendaDao.getAgendaUtente(idUtente).map { it.toAgendaPublic() }
+                val adessoString = java.time.Instant.now().toString()
+                val cached = agendaDao.getAgendaUtente(idUtente, adessoString).map { it.toAgendaPublic() }
 
                 if (cached.isNotEmpty()) {
                     Result.success(cached)
@@ -42,7 +46,6 @@ class AgendaUtenteRepository(
             val response = api.getImpegno(impegnoId)
             Result.success(response)
         } catch (e: IOException) {
-            // MANCA INTERNET: Cerca il singolo impegno nel DAO
             val cached = agendaDao.getImpegnoById(impegnoId)?.toAgendaPublic()
             if (cached != null) Result.success(cached) else Result.failure(Exception("Impegno non trovato offline."))
         } catch (e: Exception) {
@@ -53,9 +56,6 @@ class AgendaUtenteRepository(
         return try {
             val response = api.createImpegno(impegnoIn)
             Result.success(response)
-        } catch (e: IOException) {
-            // Fallisce elegantemente se offline
-            Result.failure(Exception("Connessione necessaria per aggiungere un appuntamento all'agenda."))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -65,8 +65,6 @@ class AgendaUtenteRepository(
         return try {
             val response = api.updateImpegno(impegnoId, impegnoIn)
             Result.success(response)
-        } catch (e: IOException) {
-            Result.failure(Exception("Connessione necessaria per modificare un appuntamento."))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -76,8 +74,6 @@ class AgendaUtenteRepository(
         return try {
             api.deleteImpegno(impegnoId)
             Result.success(Unit)
-        } catch (e: IOException) {
-            Result.failure(Exception("Connessione necessaria per eliminare un appuntamento."))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -87,8 +83,6 @@ class AgendaUtenteRepository(
         return try {
             val response = api.getImpegniCritici(idUtente, lat, lon)
             Result.success(response)
-        } catch (e: IOException) {
-            Result.failure(Exception("Il calcolo degli impegni critici richiede il GPS e la connessione a Internet."))
         } catch (e: Exception) {
             Result.failure(e)
         }

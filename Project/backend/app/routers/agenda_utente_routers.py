@@ -20,6 +20,14 @@ def create_impegno(impegno_in: AgendaUtenteCreate, service: AgendaService = Depe
         return service.create_impegno(impegno_in=impegno_in)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/imminenti", response_model=List[AgendaUtenteContext])
+def get_impegni_imminenti(id_utente: int, lat: float, lon: float, service: AgendaService = Depends(get_agenda_service)):
+    """
+    Restituisce gli impegni che iniziano entro i prossimi 15 minuti.
+    Fornisce la distanza esatta in metri e un avviso contestuale.
+    """
+    return service.get_impegni_critici(id_utente=id_utente, lat=lat, lon=lon)
 
 @router.get("/utente/{id_utente}", response_model=List[AgendaUtentePublic])
 def read_agenda_utente(id_utente: int, solo_futuri: bool =False, service: AgendaService = Depends(get_agenda_service)):
@@ -29,13 +37,7 @@ def read_agenda_utente(id_utente: int, solo_futuri: bool =False, service: Agenda
     """
     return service.get_agenda_by_utente(id_utente=id_utente, solo_futuri=solo_futuri)
 
-@router.get("/imminenti", response_model=List[AgendaUtenteContext])
-def get_impegni_imminenti(id_utente: int, lat: float, lon: float, service: AgendaService = Depends(get_agenda_service)):
-    """
-    Restituisce gli impegni che iniziano entro i prossimi 15 minuti.
-    Fornisce la distanza esatta in metri e un avviso contestuale.
-    """
-    return service.get_impegni_critici(id_utente=id_utente, lat=lat, lon=lon)
+
 
 @router.get("/{impegno_id}", response_model=AgendaUtentePublic)
 def read_impegno(impegno_id: int, service: AgendaService = Depends(get_agenda_service)):

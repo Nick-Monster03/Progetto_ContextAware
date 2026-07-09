@@ -34,6 +34,8 @@ class AgendaService:
             raise ValueError("L'utente ha già un impegno programmato in questo intervallo orario.")
 
         db_impegno = AgendaUtente.model_validate(impegno_in)
+        #DEBUG
+        #print(db_impegno.model_dump())
         self.session.add(db_impegno)
         self.session.commit()
         return db_impegno
@@ -114,7 +116,7 @@ class AgendaService:
             distanza = self.session.exec(query_dist, params={"lon": lon, "lat": lat, "id_poi": poi.id}).scalar() 
             distanza_metri = round(distanza, 2) if distanza else 0.0
             
-            avviso = f"L'evento '{imp.titolo}' inizia tra 15 minuti! Sei a {distanza_metri} metri di distanza."
+            avviso = f"L'evento '{imp.titolo}' inizia tra poco! Sei a {distanza_metri} metri di distanza."
             
             impegno_data = imp.model_dump()
             

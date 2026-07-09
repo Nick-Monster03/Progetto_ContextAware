@@ -27,6 +27,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.myapplication.ui.agenda.AgendaUtenteView
 import com.example.myapplication.ui.agenda.AgendaUtenteViewModel
 import com.example.myapplication.ui.map.MapView
@@ -37,6 +40,8 @@ import com.example.myapplication.ui.profile.ProfileViewModel
 import com.example.myapplication.ui.storico.StoricoView
 import com.example.myapplication.ui.storico.StoricoViewModel
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.worker.AgendaNotificationWorker
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +52,15 @@ class MainActivity : ComponentActivity() {
                 RootNavigation()
             }
         }
+        val agendaWorkRequest = PeriodicWorkRequestBuilder<AgendaNotificationWorker>(
+            15, TimeUnit.MINUTES
+        ).build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "AgendaNotificationWork",
+            ExistingPeriodicWorkPolicy.KEEP,
+            agendaWorkRequest
+        )
     }
 }
 

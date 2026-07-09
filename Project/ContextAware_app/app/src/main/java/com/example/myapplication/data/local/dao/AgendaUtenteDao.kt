@@ -9,8 +9,8 @@ import com.example.myapplication.data.local.entities.AgendaUtenteEntity
 @Dao
 interface AgendaUtenteDao {
 
-    @Query("SELECT * FROM agenda_table WHERE id_utente = :idUtente ORDER BY orario_inizio ASC")
-    suspend fun getAgendaUtente(idUtente: Int): List<AgendaUtenteEntity>
+    @Query("SELECT * FROM agenda_table WHERE id_utente = :idUtente AND orario_inizio >= :currentTime ORDER BY orario_inizio ASC")
+    suspend fun getAgendaUtente(idUtente: Int, currentTime: String): List<AgendaUtenteEntity>
 
     @Query("SELECT * FROM agenda_table WHERE id = :impegnoId")
     suspend fun getImpegnoById(impegnoId: Int): AgendaUtenteEntity?

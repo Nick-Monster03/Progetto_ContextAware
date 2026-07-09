@@ -83,15 +83,21 @@ fun AgendaUtenteView(viewModel: AgendaUtenteViewModel) {
 fun ImpegnoCard(impegno: AgendaUtentePublic) {
 
     val dataFormattata = try {
-        ZonedDateTime.parse(impegno.orario_inizio).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        ZonedDateTime.parse(impegno.orario_inizio)
+            .withZoneSameInstant(java.time.ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
     } catch (e: Exception) { "" }
 
     val orarioInizio = try {
-        ZonedDateTime.parse(impegno.orario_inizio).format(DateTimeFormatter.ofPattern("HH:mm"))
+        ZonedDateTime.parse(impegno.orario_inizio)
+            .withZoneSameInstant(java.time.ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("HH:mm"))
     } catch (e: Exception) { "N/D" }
 
     val orarioFine = try {
-        ZonedDateTime.parse(impegno.orario_fine).format(DateTimeFormatter.ofPattern("HH:mm"))
+        ZonedDateTime.parse(impegno.orario_fine)
+            .withZoneSameInstant(java.time.ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("HH:mm"))
     } catch (e: Exception) { "N/D" }
 
     Card(

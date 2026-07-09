@@ -7,6 +7,7 @@ import android.content.Intent
 import android.util.Log
 import com.example.myapplication.data.model.GeofenceConfigResponse
 import com.example.myapplication.data.remote.api.GeofenceApi
+import com.example.myapplication.data.repository.GeofenceRepository
 import com.example.myapplication.receiver.GeofenceReceiver
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
@@ -35,7 +36,9 @@ class GeofenceManager(private val context: Context) {
             try {
                 Log.d("GeofenceManager", "Richiesta configurazioni Geofence per utente $userId...")
                 val api = ApiClient.retrofit.create(GeofenceApi::class.java)
+                //val geofence_repo = GeofenceRepository(api)
                 val configs = api.getGeofenceConfig(userId)
+                //val configs = geofence_repo.getGeofenceConfig(userId)
 
                 if (configs.isNotEmpty()) {
                     registerGeofences(configs, userId)

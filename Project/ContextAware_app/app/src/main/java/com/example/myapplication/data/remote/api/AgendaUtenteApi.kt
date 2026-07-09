@@ -17,9 +17,9 @@ interface AgendaUtenteApi {
         @Query("solo_futuri") soloFuturi: Boolean = false
     ): List<AgendaUtentePublic>
 
-    @GET("agenda/utente/{id_utente}/critici")
+    @GET("agenda/imminenti")
     suspend fun getImpegniCritici(
-        @Path("id_utente") idUtente: Int,
+        @Query("id_utente") idUtente: Int,
         @Query("lat") lat: Double,
         @Query("lon") lon: Double
     ): List<AgendaUtenteContext>

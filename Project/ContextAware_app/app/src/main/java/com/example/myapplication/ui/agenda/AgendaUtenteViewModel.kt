@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.agenda
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -49,7 +50,7 @@ class AgendaUtenteViewModel(
                 val user = sessionManager.loggedUser.first()
                 if (user != null) {
                     val result = agendaRepo.getAgendaUtente(user.id, soloFuturi = true)
-
+                    //Log.d("AgendaUtente", "I risultati${result}")
                     result.onSuccess { list ->
                         _impegni.value = list
                     }.onFailure { error ->
@@ -111,13 +112,11 @@ class AgendaUtenteViewModel(
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(AgendaUtenteViewModel::class.java)) {
-                // 1. Inizializza il DB locale
                 val database = ContextAwareDatabase.getDatabase(context)
 
                 val agendaApi = ApiClient.retrofit.create(AgendaUtenteApi::class.java)
                 val poiApi = ApiClient.retrofit.create(PoiApi::class.java)
 
-                // 2. Passa il DAO all'AgendaUtenteRepository!
                 val agendaRepo = AgendaUtenteRepository(agendaApi, database.agendaUtenteDao())
                 val poiRepo = PoiRepository(poiApi, database.poiDao())
                 val sessionManager = SessionManager(context)

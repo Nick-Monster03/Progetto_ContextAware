@@ -54,7 +54,6 @@ class StoricoViewModel(
             val result = repository.updateEvento(eventoId, updateRequest)
 
             result.onSuccess { eventoAggiornato ->
-                // Aggiorniamo la lista locale per mostrare subito il feedback selezionato
                 _eventi.value = _eventi.value.map {
                     if (it.id == eventoId) eventoAggiornato else it
                 }
