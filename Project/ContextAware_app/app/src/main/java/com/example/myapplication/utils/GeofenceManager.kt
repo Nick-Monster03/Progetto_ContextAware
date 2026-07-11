@@ -31,14 +31,13 @@ class GeofenceManager(private val context: Context) {
         )
     }
 
+    //Ottiene i geofence in base alle preferenze dell'utente facendo la chiamta al backend
     fun setupGeofencesFromBackend(userId: Int) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 Log.d("GeofenceManager", "Richiesta configurazioni Geofence per utente $userId...")
                 val api = ApiClient.retrofit.create(GeofenceApi::class.java)
-                //val geofence_repo = GeofenceRepository(api)
                 val configs = api.getGeofenceConfig(userId)
-                //val configs = geofence_repo.getGeofenceConfig(userId)
 
                 if (configs.isNotEmpty()) {
                     registerGeofences(configs, userId)
@@ -61,7 +60,7 @@ class GeofenceManager(private val context: Context) {
 
                 Geofence.Builder()
                     .setRequestId("${config.poi.id}_$userId")
-                    .setCircularRegion(centerPoint.first, centerPoint.second, config.raggio.toFloat())
+                    .setCircularRegion(centerPoint.first, centerPoint.second, config.raggio.toFloat()) //raggio di 10m asseganto dal backend
                     .setExpirationDuration(Geofence.NEVER_EXPIRE)
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
                     .build()
@@ -79,10 +78,14 @@ class GeofenceManager(private val context: Context) {
 
         geofencingClient.addGeofences(request, geofencePendingIntent)
             .addOnSuccessListener {
-                Log.d("GeofenceManager", "✅ Registrati con successo ${geofenceList.size} Geofence(s)!")
+                Log.d("GeofenceManager", "Registrati con successo ${geofenceList.size} Geofences:")
+                //DEBUG
+                geofenceList.forEach { geofence ->
+                    Log.d("GeofenceManager", "Geofence ID: ${geofence.requestId}")
+                }
             }
             .addOnFailureListener {
-                Log.e("GeofenceManager", "❌ Errore durante la registrazione dei Geofence: ${it.message}")
+                Log.e("GeofenceManager", "Errore durante la registrazione dei Geofence: ${it.message}")
             }
     }
 }

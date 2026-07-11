@@ -128,7 +128,7 @@ class TrackingService : LifecycleService() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Campus Assistant Attivo")
-            .setContentText("Ricerca servizi e notifiche contestuali in esecuzione...")
+            .setContentText("Ricerca servizi e notifiche contestuali in esecuzione")
             .setSmallIcon(R.drawable.ic_favorite)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
@@ -139,7 +139,7 @@ class TrackingService : LifecycleService() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Servizio Context-Aware Campus",
+            "Servizio Campus Assistant",
             NotificationManager.IMPORTANCE_LOW
         )
         val manager = getSystemService(NotificationManager::class.java)

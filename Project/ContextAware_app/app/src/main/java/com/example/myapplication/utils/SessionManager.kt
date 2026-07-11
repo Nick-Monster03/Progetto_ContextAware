@@ -10,6 +10,8 @@ import com.example.myapplication.data.model.UtentePublic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+//Questa casse si occupa solo di salvare e di mantenre a disposizione tutte le informazioni utili dello use loggato
+//così da poterle usare in qualsiasi momento della sessione (per esempio l'id serve per quasi ogni chiamata)
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_session")
 
 class SessionManager(private val context: Context) {

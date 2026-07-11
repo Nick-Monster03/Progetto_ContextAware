@@ -14,7 +14,7 @@ import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
 
 
-
+//Classe il cui unico scopo è leggere i file geojson che arrivano dal backend (point, polygon, linestring o multipolygon)
 data class PolygonStyle(
     val fillColor: Int = Color.argb(75, 0, 150, 255),
     val strokeColor: Int = Color.BLUE,
@@ -35,7 +35,7 @@ fun addGeoJsonToMap(
     descrizione: String?,
     jsonElement: JsonElement,
     polygonStyle: PolygonStyle = defaultPolygonStyle,
-    onClick: () -> Unit = {} // <-- NUOVO PARAMETRO
+    onClick: () -> Unit = {}
 ): List<Any> {
     val addedOverlays = mutableListOf<Any>()
 
@@ -45,7 +45,7 @@ fun addGeoJsonToMap(
         val coordinates = jsonObj["coordinates"]?.jsonArray
 
         if (coordinates == null) {
-            Log.w("GeoJsonHelper", "POI $poiId ($nome): geometria senza 'coordinates', skip")
+            //Log.w("GeoJsonHelper", "POI $poiId ($nome): geometria senza 'coordinates', skip")
             return addedOverlays
         }
 
@@ -143,6 +143,7 @@ private fun createPolygon(
     }
 }
 
+//Funzione per ricavare il centor di una geometria (caso polygon e multipolygon) così da usufruiredel geofence
 fun JsonElement.getCenterForGeofence(): Pair<Double, Double>? {
     return try {
         val jsonObj = this.jsonObject

@@ -36,7 +36,7 @@ def get_geofence_config(
     service: GeofenceService = Depends(get_geofence_service)
 ):
     """
-    Restituisce la lista di POI e i relativi raggi (10m o 100m) 
+    Restituisce la lista di POI e i relativi raggi (10m) 
     che l'app mobile deve sorvegliare per l'utente specificato.
     """
     return service.get_geofence_config(id_utente)

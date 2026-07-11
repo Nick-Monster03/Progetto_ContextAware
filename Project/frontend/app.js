@@ -553,14 +553,26 @@ async function loadAnalyticsDashboard() {
             window.myPoiChart = new Chart(poiCtx, {
                 type: 'bar',
                 data: {
-                    labels: topPois.map(p => p.nome_poi),
+                    labels: topPois.map(p => p.nome_poi.length > 5 ? p.nome_poi.substring(0, 5) + '...' : p.nome_poi), 
                     datasets: [{
                         label: 'Totale Eventi',
                         data: topPois.map(p => p.totale_eventi),
                         backgroundColor: '#23281F', borderRadius: 2
                     }]
                 },
-                options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+                options: { 
+                    maintainAspectRatio: false, 
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return topPois[context[0].dataIndex].nome_poi;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
 

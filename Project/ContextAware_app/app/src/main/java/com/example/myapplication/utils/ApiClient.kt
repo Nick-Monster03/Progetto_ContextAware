@@ -7,6 +7,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 
+//Questo oggetto sernve solo per collegare i repository al back end
 object ApiClient {
 
     private const val BASE_URL = "http://127.0.0.1:8000/"

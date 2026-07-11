@@ -31,7 +31,9 @@ class GeofenceService:
     def get_geofence_config(self, id_utente: int) -> List[Dict[str, Any]]:
         """
         Restituisce la lista dei POI da monitorare con il geofencing.
-        Sfoltita: solo preferenze utente (no mezzi) e max 99 elementi per Android.
+        Vengono considerate solo le categorie preferite esplicite dell'utente:
+        le categorie derivate dal mezzo di spostamento sono escluse deliberatamente 
+        e vengono presi solo i primi 99 POI per limiti Andoid.
         """
         utente = self.session.get(Utente, id_utente)
         if not utente:
@@ -43,14 +45,14 @@ class GeofenceService:
         categorie_preferite = self.session.exec(query_pref).all()
 
         if categorie_preferite:
-            query_poi_pref = select(POI).where(POI.id_categoria.in_(categorie_preferite))
+            query_poi_pref = select(POI).where(POI.id_categoria.in_(categorie_preferite), POI.campus == utente.campus)
             pois_pref = self.session.exec(query_poi_pref).all()
             
             for p in pois_pref:
                 configurazioni.append({
                     "poi": p, 
                     "raggio": 10.0, 
-                    "motivo": "Categoria preferita"
+                    "motivo": "Attraversamento geofence (raggio 10 m) su POI di categoria preferita"
                 })
 
         return configurazioni[:99] #carico i primi 99 perchè android ha un limite di 100 geofences
