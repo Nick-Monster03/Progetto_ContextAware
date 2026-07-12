@@ -18,7 +18,16 @@ def create_evento(evento_in: EventoCreate, session: Session = Depends(get_sessio
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Errore durante la creazione dell'evento: {str(e)}")
 
-
+@router.get("/getAll", response_model=List[EventoPublic])
+def read_all_eventi(session: Session = Depends(get_session)):
+    """
+    Recupera tutti gli eventi presenti nel database. Utile per la dashboard di amministrazione.
+    """
+    try:
+        return EventoService(session=session).get_all_eventi()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @router.get("/{evento_id}", response_model=EventoPublic)
 def read_evento(evento_id: int, session: Session = Depends(get_session)):
     """
@@ -44,6 +53,7 @@ def read_eventi_utente(
         return EventoService(session=session).get_eventi_by_utente(id_utente=id_utente)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+        
 
 
 @router.patch("/{evento_id}", response_model=EventoPublic)

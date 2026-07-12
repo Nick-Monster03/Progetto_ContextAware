@@ -73,6 +73,35 @@ class EventoService:
                 )
             )
         return eventi_pubblici
+    
+    def get_all_eventi(self) -> List[EventoPublic]:
+        query = text("""
+            SELECT id, id_utente, id_poi, tipo, messaggio, feedback, motivo, time_stamp,
+                   ST_X(posizione_utente_reale) AS longitudine,
+                   ST_Y(posizione_utente_reale) AS latitudine
+            FROM evento
+            ORDER BY time_stamp DESC
+        """)
+        
+        results = self.session.exec(query).mappings().all()
+        
+        eventi = []
+        for row in results:
+            eventi.append(
+                EventoPublic(
+                    id=row["id"],
+                    id_utente=row["id_utente"],
+                    id_poi=row["id_poi"],
+                    tipo=row["tipo"],
+                    messaggio=row["messaggio"],
+                    motivo=row["motivo"],
+                    feedback=row["feedback"],
+                    time_stamp=row["time_stamp"],
+                    latitudine=row["latitudine"],
+                    longitudine=row["longitudine"],
+                )
+            )
+        return eventi
 
     def update_evento_feedback(self, evento_id: int, evento_in: EventoUpdate) -> EventoPublic:
         query = text("""

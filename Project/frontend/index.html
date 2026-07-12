@@ -104,6 +104,24 @@
                 <h2 class="font-display text-lg font-semibold mb-3">Categorie più richieste</h2>
                 <div style="height:260px;"><canvas id="categorieChart"></canvas></div>
             </div>
+            <div class="card p-4 lg:col-span-2">
+                <div class="flex justify-between items-end flex-wrap gap-3 mb-3">
+                    <h2 class="font-display text-lg font-semibold">Eventi contestuali per ora del giorno</h2>
+                    <div class="flex gap-2 items-end flex-wrap">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wide mb-1" style="color: var(--muted);">Dal</label>
+                            <input type="date" id="filtroEventiDa" class="p-1.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-wide mb-1" style="color: var(--muted);">Al</label>
+                            <input type="date" id="filtroEventiA" class="p-1.5 text-sm">
+                        </div>
+                        <button onclick="applicaFiltroEventi()" class="btn-primary px-3 py-1.5 text-sm font-medium">Applica</button>
+                        <button onclick="resetFiltroEventi()" class="btn-ghost px-3 py-1.5 text-sm">Reset</button>
+                    </div>
+                </div>
+                <div style="height:280px;"><canvas id="eventiOraChart"></canvas></div>
+            </div>
         </div>
 
         <div class="card p-4 mb-8">

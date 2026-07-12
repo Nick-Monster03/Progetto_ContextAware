@@ -13,7 +13,16 @@ const CATEGORIE_META = {
     benzinaio:     { label: 'Benzinaio',     codice: 'BEN', colore: '#A6792E' }
 };
 
-// Indice = valore "giorno" usato dal backend
+const TIPI_EVENTO_META = {
+    suggerimento:     { label: 'Suggerimento',    colore: '#A6792E' },
+    avviso_agenda:    { label: 'Avviso agenda',   colore: '#55684A' },
+    poi_selezionato:  { label: 'POI selezionato', colore: '#3B5070' },
+    geofencing_enter: { label: 'Geofence enter',  colore: '#B23A2E' },
+    geofencing_exit:  { label: 'Geofence exit',   colore: '#8C8577' }
+};
+
+let eventiCache = [];
+
 const GIORNI = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
 
 Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
@@ -26,11 +35,11 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let heatLayer = null;
 let isHeatmapActive = false;
-let editingPoiId = null; // null = modale in modalità "crea", altrimenti id del POI in modifica
+let editingPoiId = null; 
 
-const categorieById = {};   // id_categoria -> { label, codice, colore, nome }
-const categoryLayers = {};  // id_categoria -> L.layerGroup() sulla mappa
-let poiById = {};            // cache dei POI caricati, usata per modifica ed elaborazione statistiche
+const categorieById = {};   
+const categoryLayers = {};  
+let poiById = {};            
 
 function escapeHtml(value) {
     if (value === null || value === undefined) return '';
@@ -217,7 +226,6 @@ function aggiornaListaCampus(poiList) {
     }
 }
 
-// ---------- Filtri ----------
 
 function applyFilters() {
     const params = new URLSearchParams();
@@ -266,7 +274,7 @@ function impostaOrarioAdesso() {
     if (orarioChiusuraEl) orarioChiusuraEl.value = adesso;
 }
 
-// ---------- Modale: crea/modifica POI ----------
+//Modale: crea/modifica POI 
 
 async function apriModal(poiId = null) {
     editingPoiId = poiId;
@@ -282,11 +290,9 @@ async function apriModal(poiId = null) {
         submitBtn.textContent = 'Salva';
         orariSection.classList.add('hidden');
         
-        // FORZA l'attributo required per la creazione
         geometriaInput.setAttribute('required', 'true');
         geometriaHint.textContent = 'Formato WKT, es. POINT(11.34 44.49). Obbligatorio.';
         
-        // Pulisci campi
         document.getElementById('inputNome').value = '';
         document.getElementById('inputCategoria').value = '';
         document.getElementById('inputCampus').value = '';
@@ -303,7 +309,6 @@ async function apriModal(poiId = null) {
         document.getElementById('inputDescrizione').value = poi.descrizione || '';
         geometriaInput.value = '';
         
-        // RIMUOVE l'attributo required, così il browser non blocca il salvataggio in silenzio
         geometriaInput.removeAttribute('required');
         geometriaHint.textContent = "Lascia vuoto per non modificare la posizione attuale.";
 
@@ -329,7 +334,7 @@ function estraiErrore(errData, messaggioDefault) {
 }
 
 async function salvaPOI(event) {
-    event.preventDefault(); // Previene il ricaricamento della pagina
+    event.preventDefault(); 
 
     const payload = {
         nome: document.getElementById('inputNome').value,
@@ -507,6 +512,69 @@ function toggleHeatmap() {
     isHeatmapActive = !isHeatmapActive;
 }
 
+async function loadEventiPerOra() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/eventi/getAll`);
+        eventiCache = await response.json();
+        renderEventiOraChart(eventiCache);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function renderEventiOraChart(eventi) {
+    const buckets = {};
+    eventi.forEach(e => {
+        const ora = parseInt(e.time_stamp.slice(11, 13), 10);
+        if (Number.isNaN(ora) || ora < 0 || ora > 23) return;
+        const tipoKey = (e.tipo || 'altro').toLowerCase();
+        if (!buckets[tipoKey]) buckets[tipoKey] = new Array(24).fill(0);
+        buckets[tipoKey][ora]++;
+    });
+
+    const labels = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`);
+    const datasets = Object.entries(buckets).map(([tipoKey, counts]) => {
+        const meta = TIPI_EVENTO_META[tipoKey] || { label: tipoKey, colore: '#9ca3af' };
+        return { label: meta.label, data: counts, backgroundColor: meta.colore, borderRadius: 2 };
+    });
+
+    const ctxEl = document.getElementById('eventiOraChart');
+    if (!ctxEl) return;
+    const ctx = ctxEl.getContext('2d');
+    if (window.myEventiOraChart) window.myEventiOraChart.destroy();
+    window.myEventiOraChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: labels, datasets: datasets },
+        options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                x: { stacked: true, ticks: { maxRotation: 0, autoSkip: true } },
+                y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    });
+}
+
+function applicaFiltroEventi() {
+    const da = document.getElementById('filtroEventiDa').value; // "YYYY-MM-DD" oppure ""
+    const a  = document.getElementById('filtroEventiA').value;
+    const filtrati = eventiCache.filter(e => {
+        if (!e.time_stamp) return false;
+        const dataEvento = e.time_stamp.slice(0, 10);
+        if (da && dataEvento < da) return false;
+        if (a && dataEvento > a) return false;
+        return true;
+    });
+    renderEventiOraChart(filtrati);
+}
+
+function resetFiltroEventi() {
+    document.getElementById('filtroEventiDa').value = '';
+    document.getElementById('filtroEventiA').value = '';
+    renderEventiOraChart(eventiCache);
+}
+
 async function loadAnalyticsDashboard() {
     try {
         const response = await fetch(`${API_BASE_URL}/analytics/dashboard`);
@@ -632,4 +700,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadPOIs();
     loadHeatmap();
     loadAnalyticsDashboard();
+    loadEventiPerOra();
 });
