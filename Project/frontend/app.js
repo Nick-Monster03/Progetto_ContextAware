@@ -1,6 +1,6 @@
-const API_BASE_URL = 'http://localhost:8000';
+// CONFIGURAZIONI GLOBALI: Definizione URL base API, metadati di categorie ed eventi (colori e label) e inizializzazione mappa
 
-// Etichetta, codice a 3 lettere (stile legenda cartografica) e colore per ogni categoria.
+const API_BASE_URL = 'http://localhost:8000';
 const CATEGORIE_META = {
     biblioteca:    { label: 'Biblioteca',    codice: 'BIB', colore: '#3B5070' },
     sala_studio:   { label: 'Sala Studio',   codice: 'STU', colore: '#4C7A78' },
@@ -50,6 +50,7 @@ function escapeHtml(value) {
         .replace(/"/g, '&quot;');
 }
 
+//Richiede le categorie all'API e prepara i layer della mappa e l'interfaccia utente
 async function initCategorie() {
     try {
         const response = await fetch(`${API_BASE_URL}/categorie/`);
@@ -69,6 +70,7 @@ async function initCategorie() {
     }
 }
 
+//Aggiornano visivamente il DOM popolando la legenda, le select e le checkbox di filtro delle categorie
 function renderLegenda() {
     const legenda = document.getElementById('legenda');
     if (!legenda) return;
@@ -112,6 +114,7 @@ function renderFilterCategorie() {
     });
 }
 
+//Carica i Punti di Interesse (POI) dal database, eventualmente applicando i filtri di ricerca
 async function loadPOIs(queryString = '') {
     try {
         const url = queryString ? `${API_BASE_URL}/poi/filter?${queryString}` : `${API_BASE_URL}/poi/`;
@@ -131,6 +134,7 @@ async function loadPOIs(queryString = '') {
     }
 }
 
+//Genera dinamicamente le righe della tabella HTML con i dati dei POI e i pulsanti di azione
 function renderPOITable(poiList) {
     const tableBody = document.getElementById('poi-table-body');
     if (!tableBody) return;
@@ -167,6 +171,7 @@ function renderPOITable(poiList) {
     });
 }
 
+//Disegna i marker dei POI sulla mappa Leaflet, assegnando il colore corretto in base alla categoria
 function renderPOIMarkers(poiList) {
     Object.values(categoryLayers).forEach(layer => layer.clearLayers());
 
@@ -199,6 +204,7 @@ function renderPOIMarkers(poiList) {
     });
 }
 
+//Estrapola in automatico la lista dei campus dai POI e popola i menu a tendina
 function aggiornaListaCampus(poiList) {
     const campusSet = new Set(poiList.map(p => p.campus));
 
@@ -274,7 +280,7 @@ function impostaOrarioAdesso() {
     if (orarioChiusuraEl) orarioChiusuraEl.value = adesso;
 }
 
-//Modale: crea/modifica POI 
+//Gestiscono l'apertura (per inserimento o modifica dati) e la chiusura della finestra modale dei POI
 
 async function apriModal(poiId = null) {
     editingPoiId = poiId;
@@ -333,6 +339,7 @@ function estraiErrore(errData, messaggioDefault) {
     return typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail);
 }
 
+//Eseguono le chiamate API per creare (POST), aggiornare (PATCH) o eliminare (DELETE) un POI
 async function salvaPOI(event) {
     event.preventDefault(); 
 
@@ -512,6 +519,7 @@ function toggleHeatmap() {
     isHeatmapActive = !isHeatmapActive;
 }
 
+//Recupera i dati storici e popola il grafico a barre degli eventi, gestendone anche il filtraggio temporal
 async function loadEventiPerOra() {
     try {
         const response = await fetch(`${API_BASE_URL}/eventi/getAll`);
@@ -575,6 +583,7 @@ function resetFiltroEventi() {
     renderEventiOraChart(eventiCache);
 }
 
+//Genera i grafici per feedback, POI più attivi e categorie maggiormente richieste
 async function loadAnalyticsDashboard() {
     try {
         const response = await fetch(`${API_BASE_URL}/analytics/dashboard`);
