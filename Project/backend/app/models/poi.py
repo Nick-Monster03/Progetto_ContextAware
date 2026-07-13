@@ -26,7 +26,12 @@ class POICreate(POIBase):
  
 class POIPublic(POIBase):
     id: int
- 
+    
+    # Se geometria è None, restituisce None.
+    # Se è un WKBElement (tipico formato geometrico letto dal DB PostGIS/GeoAlchemy), lo converte in oggetto Shapely con to_shape.
+    # Se poi è una geometria Shapely (BaseGeometry), la trasforma in dizionario con mapping(), cioè un formato tipo GeoJSON 
+    # Se non è nessuno di questi casi, restituisce il valore com’è.
+
     @field_serializer("geometria")
     def serialize_geometria(self, geometria: Any, _info):
         if geometria is None:

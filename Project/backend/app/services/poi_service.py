@@ -220,9 +220,7 @@ class PoiService:
         #mezzo_spostamento: str | None = None,
         campus: str | None = None
     ) -> List[POI]:
-        """
-        Punto di ingresso per il filtraggio dinamico. 
-        """
+        
         query = select(POI)
         params: Dict[str, Any] = {}
 
@@ -247,7 +245,7 @@ class PoiService:
     def get_pois_nearby_with_distance(self, lat: float, lon: float, radius_meters: float = 2000.0) -> List[POIDistance]:
         """
         Recupera i POI entro un raggio specificato (default 2km) e 
-        restituisce una lista di oggetti POIDistance (che unisce i dati del POI e la distanza).
+        restituisce una lista di oggetti POIDistance che unisce i dati del POI e la distanza dalla poszione.
         """
         
         distance_expr = text("""
@@ -283,9 +281,7 @@ class PoiService:
         return lista_risultati
     
     def search_pois_by_name(self, query: str, campus: str | None = None) -> List[POI]:
-        """
-        Ricerca i POI tramite nome. Se il campus è fornito, filtra anche per campus.
-        """
+        
         statement = select(POI).where(POI.nome.ilike(f"%{query}%"))
         
         if campus:

@@ -24,6 +24,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+/*
+    ViewModel del profilo utente: carica i dati e le preferenze dell'utente loggato,
+    permette di modificare campus e mezzo di spostamento e sincronizza le categorie
+    preferite con il backend calcolando la differenza tra selezione iniziale e corrente
+    (solo le preferenze aggiunte/rimosse generano chiamate API).
+ */
+
 class ProfileViewModel(
     private val sessionManager: SessionManager,
     private val utenteRepository: UtenteRepository,
@@ -143,8 +150,8 @@ class ProfileViewModel(
                 mezzoDiSpostamento = mezzoEnum
             )
             //DEBUG
-            Log.d("Profile-User", updatePayload.campus?: "-")
-            Log.d("Profile-User", updatePayload.mezzoDiSpostamento?.name ?: "-")
+            //Log.d("Profile-User", updatePayload.campus?: "-")
+            //Log.d("Profile-User", updatePayload.mezzoDiSpostamento?.name ?: "-")
             val result = utenteRepository.updateUtente(uid, updatePayload)
 
             result.fold(

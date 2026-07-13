@@ -11,8 +11,7 @@ class PreferenzaService:
 
     def get_categorie_by_utente(self, id_utente: int) -> List[PreferenzaUtente]:
         """
-        Restituisce tutte le preferenze di un dato utente 
-        (utile per ricavare gli id_categoria associati all'utente).
+        Restituisce tutte le preferenze di un dato utente.
         """
         statement = select(PreferenzaUtente).where(PreferenzaUtente.id_utente == id_utente)
         risultati = self.session.exec(statement).all()
@@ -21,8 +20,7 @@ class PreferenzaService:
     
     def get_utenti_by_categoria(self, id_categoria: int) -> List[PreferenzaUtente]:
         """
-        Restituisce tutti gli utenti che hanno una preferenza per una data categoria
-        (utile per ricavare gli id_utente associati a una categoria).
+        Restituisce tutti gli utenti che hanno una preferenza per una data categoria.
         """
         statement = select(PreferenzaUtente).where(PreferenzaUtente.id_categoria == id_categoria)
         risultati = self.session.exec(statement).all()
@@ -32,7 +30,8 @@ class PreferenzaService:
     def create_preferenza(self, preferenza_in: PreferenzaUtenteCreate) -> PreferenzaUtente:
         """
         Crea una nuova preferenza utente-categoria.
-        Controlla prima che non esista già per evitare errori di Primary Key duplicata.
+        Controlla prima che non esista già per evitare errori di Primary Key duplicata,
+        anche se l'azione verrebbe bloccata dalla base di dati.
         """
         statement = select(PreferenzaUtente).where(
             PreferenzaUtente.id_utente == preferenza_in.id_utente,

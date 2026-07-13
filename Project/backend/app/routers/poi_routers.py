@@ -73,7 +73,7 @@ def search_pois(
     service: PoiService = Depends(get_poi_service)
 ):
     """
-    Ricerca POI per nome. Se viene passato il campus, i risultati sono contestualizzati.
+    Ricerca i POI tramite nome. Se il campus è fornito, filtra anche per campus.
     """
     return service.search_pois_by_name(query=query, campus=campus)
 
@@ -113,10 +113,12 @@ def get_poi_by_id(poi_id: int, service: PoiService = Depends(get_poi_service)):
 
 @router.patch("/{poi_id}", response_model=POIPublic)
 def update_poi(poi_id: int, poi_in: POIUpdate, service: PoiService = Depends(get_poi_service)):
+    """Update del singolo POI"""
     return service.update_poi(poi_id, poi_in)
 
 @router.delete("/{poi_id}", response_model=POIPublic)
 def delete_poi(poi_id: int, service: PoiService = Depends(get_poi_service)):
+    """Elimina un POI dal database."""
     db_poi = service.delete_poi(poi_id)
     return db_poi
 

@@ -50,6 +50,7 @@ class GeofenceManager(private val context: Context) {
         }
     }
 
+//Funzione per la registrazione dei geofence passati tra la lista di GeofenceConfigResponse, viene chiamata da setupGeofencesFromBackend
     @SuppressLint("MissingPermission")
     private fun registerGeofences(configs: List<GeofenceConfigResponse>, userId: Int) {
 
@@ -80,9 +81,9 @@ class GeofenceManager(private val context: Context) {
             .addOnSuccessListener {
                 Log.d("GeofenceManager", "Registrati con successo ${geofenceList.size} Geofences:")
                 //DEBUG
-                geofenceList.forEach { geofence ->
-                    Log.d("GeofenceManager", "Geofence ID: ${geofence.requestId}")
-                }
+                //geofenceList.forEach { geofence ->
+                //    Log.d("GeofenceManager", "Geofence ID: ${geofence.requestId}")
+                //}
             }
             .addOnFailureListener {
                 Log.e("GeofenceManager", "Errore durante la registrazione dei Geofence: ${it.message}")

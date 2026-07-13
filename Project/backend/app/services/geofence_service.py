@@ -29,12 +29,6 @@ class GeofenceService:
         return self.session.exec(query).first()
 
     def get_geofence_config(self, id_utente: int) -> List[Dict[str, Any]]:
-        """
-        Restituisce la lista dei POI da monitorare con il geofencing.
-        Vengono considerate solo le categorie preferite esplicite dell'utente:
-        le categorie derivate dal mezzo di spostamento sono escluse deliberatamente 
-        e vengono presi solo i primi 99 POI per limiti Andoid.
-        """
         utente = self.session.get(Utente, id_utente)
         if not utente:
             raise ValueError("Utente non trovato")
@@ -76,7 +70,7 @@ class GeofenceService:
             id_poi=id_poi,
             tipo=tipo_evento,
             messaggio=messaggio,
-            motivo="Geofence scattato",
+            motivo=f"Geofence scattato - L'utente ha attraversato il confine virtuale del POI: {poi.nome}",
             posizione_utente_reale=f"SRID=4326;POINT({lon} {lat})"
         )
 

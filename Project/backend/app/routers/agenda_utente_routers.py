@@ -14,7 +14,7 @@ def get_agenda_service(session: Session = Depends(get_session)) -> AgendaService
 @router.post("/", response_model=AgendaUtentePublic, status_code=status.HTTP_201_CREATED)
 def create_impegno(impegno_in: AgendaUtenteCreate, service: AgendaService = Depends(get_agenda_service)):
     """
-    Aggiunge una lezione o un evento all'agenda personale dello studente.
+    Aggiunge un impegno all'agenda personale dello studente.
     """
     try:
         return service.create_impegno(impegno_in=impegno_in)
@@ -33,7 +33,7 @@ def get_impegni_imminenti(id_utente: int, lat: float, lon: float, service: Agend
 def read_agenda_utente(id_utente: int, solo_futuri: bool =False, service: AgendaService = Depends(get_agenda_service)):
     """
     Recupera tutti gli impegni in agenda per uno studente specifico, ordinati cronologicamente.
-    Può filtrare solo gli eventi futuri usando il parametro query ?solo_futuri=true
+    Può filtrare solo gli eventi futuri usando il parametro query ?solo_futuri=true 
     """
     return service.get_agenda_by_utente(id_utente=id_utente, solo_futuri=solo_futuri)
 

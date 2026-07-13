@@ -43,6 +43,7 @@ class AgendaUtenteViewModel(
         loadAgenda()
     }
 
+    // Carica l'agenda dell'utente loggato, filtrando solo gli impegni futuri.
     fun loadAgenda() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -63,6 +64,7 @@ class AgendaUtenteViewModel(
         }
     }
 
+    // Esegue la ricerca dei POI in base alla query dell'utente, limitando i risultati a quelli del campus dell'utente loggato.
     fun searchPoi(query: String) {
         if (query.length < 2) {
             _poiSearchResults.value = emptyList()
@@ -77,6 +79,7 @@ class AgendaUtenteViewModel(
         }
     }
 
+// Crea un nuovo impegno per l'utente loggato e aggiorna l'agenda.
     fun createImpegno(titolo: String, idPoi: Int, orarioInizio: String, orarioFine: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             val user = sessionManager.loggedUser.first() ?: return@launch

@@ -20,7 +20,7 @@ def trigger_geofence(
     service: GeofenceService = Depends(get_geofence_service)
 ):
     """
-    Registra l'evento nel DB quando l'utente attraversa un geofence.
+    Registra l'evento nel DB marchiandolo come gefence enter/exit.
     """
     return service.trigger_evento_geofence(
         id_utente=request.id_utente, 
@@ -36,7 +36,9 @@ def get_geofence_config(
     service: GeofenceService = Depends(get_geofence_service)
 ):
     """
-    Restituisce la lista di POI e i relativi raggi (10m) 
-    che l'app mobile deve sorvegliare per l'utente specificato.
+    Restituisce la lista dei POI da monitorare con il geofencing.
+    Vengono considerate solo le categorie preferite esplicite dell'utente:
+    le categorie derivate dal mezzo di spostamento sono escluse deliberatamente 
+    e vengono presi solo i primi 99 POI per limiti Andoid.
     """
     return service.get_geofence_config(id_utente)

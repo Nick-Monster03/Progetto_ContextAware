@@ -18,6 +18,8 @@ import com.example.myapplication.R
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+//Composable principale dell'agenda: mostra la lista degli impegni
+// e l'concina '+' per aprire il dialog di creazione.
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +54,7 @@ fun AgendaUtenteView(viewModel: AgendaUtenteViewModel) {
             }
         } else if (impegni.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                Text("Nessun impegno futuro. Goditi il relax!")
+                Text("Nessun impegno in programma")
             }
         } else {
             LazyColumn(
@@ -78,6 +80,8 @@ fun AgendaUtenteView(viewModel: AgendaUtenteViewModel) {
     }
 }
 
+//Card di un singolo impegno: titolo, POI associato, data e fascia oraria
+//convertite dal formato ISO-8601 al fuso orario locale.
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ImpegnoCard(impegno: AgendaUtentePublic) {
@@ -144,6 +148,9 @@ fun ImpegnoCard(impegno: AgendaUtentePublic) {
     }
 }
 
+//Dialog di creazione impegno: titolo, ricerca POI con autocompletamento,
+//selezione di data (solo odierna o futura) e orari con validazione inizio < fine.
+//L'impegno viene inviato al backend in formato ISO-8601 con offset.
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -153,25 +160,23 @@ fun CreaImpegnoDialog(viewModel: AgendaUtenteViewModel, onDismiss: () -> Unit) {
     var selectedPoiId by remember { mutableStateOf<Int?>(null) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
 
-    // 1. Stati per la Data e gli Orari scelti dall'utente
     var selectedDate by remember { mutableStateOf<java.time.LocalDate?>(null) }
     var startTime by remember { mutableStateOf<java.time.LocalTime?>(null) }
     var endTime by remember { mutableStateOf<java.time.LocalTime?>(null) }
 
-    // Stati per controllare la visibilità dei rispettivi Picker Dialog
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
 
     val searchResults by viewModel.poiSearchResults.collectAsState()
 
-    // Controllo di validità temporale: l'inizio deve essere prima della fine
     val isTimeValid = if (startTime != null && endTime != null) {
         startTime!!.isBefore(endTime!!)
     } else {
         true
     }
 
+    //Wrapper che incapsula un TimePicker Material 3 in un AlertDialog.
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Nuovo Impegno") },
@@ -185,7 +190,7 @@ fun CreaImpegnoDialog(viewModel: AgendaUtenteViewModel, onDismiss: () -> Unit) {
                     singleLine = true
                 )
 
-                // AUTOCOMPLETAMENTO POI
+                // Ricerca i POI per nome interrogando il backend a ogni carattere digitato
                 ExposedDropdownMenuBox(
                     expanded = isDropdownExpanded,
                     onExpandedChange = { isDropdownExpanded = it }
@@ -282,11 +287,9 @@ fun CreaImpegnoDialog(viewModel: AgendaUtenteViewModel, onDismiss: () -> Unit) {
                 onClick = {
                     if (titolo.isNotBlank() && selectedPoiId != null && selectedDate != null && startTime != null && endTime != null && isTimeValid) {
 
-                        // Combiniamo data e orari usando il fuso orario di sistema corrente (es. Europe/Rome)
                         val startZoned = java.time.ZonedDateTime.of(selectedDate, startTime, java.time.ZoneId.systemDefault())
                         val endZoned = java.time.ZonedDateTime.of(selectedDate, endTime, java.time.ZoneId.systemDefault())
 
-                        // Formattazione standard ISO-8601 con offset (es: 2026-07-04T20:00:00+02:00)
                         val formatter = java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
                         val startFormatted = startZoned.format(formatter)
                         val endFormatted = endZoned.format(formatter)
@@ -307,19 +310,15 @@ fun CreaImpegnoDialog(viewModel: AgendaUtenteViewModel, onDismiss: () -> Unit) {
         }
     )
 
-    // ================= PICKER COMPONENTI MATERIAL 3 =================
 
-    // PICKER DELLA DATA (Filtra escludendo il passato)
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    // Ottieni il timestamp dell'inizio della giornata di oggi in UTC
                     val todayStartMillis = java.time.LocalDate.now()
                         .atStartOfDay(java.time.ZoneId.of("UTC"))
                         .toInstant()
                         .toEpochMilli()
-                    // Ritorna true solo se la data selezionabile è oggi o futura
                     return utcTimeMillis >= todayStartMillis
                 }
             }

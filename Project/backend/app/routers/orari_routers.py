@@ -37,14 +37,14 @@ def read_orario(orario_id: int, service: OrariPoiService = Depends(get_orari_poi
 @router.get("/poi/{id_poi}", response_model=List[Orari_PoiPublic])
 def read_orari_by_poi(id_poi: int, service: OrariPoiService = Depends(get_orari_poi_service)):
     """
-    Ottiene tutti gli orari associati a un determinato POI.
+    Ottiene tutti gli orari associati a un determinato POI. Anchevquestoo è più di debugging
     """
     return service.get_orari_by_poi(id_poi=id_poi)
 
 @router.patch("/{orario_id}", response_model=Orari_PoiPublic)
 def update_orario(orario_id: int, orario_in: Orari_PoiUpdate, service: OrariPoiService = Depends(get_orari_poi_service)):
     """
-    Modifica un orario esistente. Invia solo i campi che vuoi aggiornare.
+    Modifica un orario esistente. 
     """
     try:
         return service.update_orario(orario_id=orario_id, orario_in=orario_in)

@@ -19,7 +19,8 @@ class RaccomandationService:
         return self.session.exec(query).all()
 
     def get_categoria_by_mezzo(self, mezzo_spostamento: str) -> int | None:
-        """Mappa il mezzo di spostamento alla categoria rilevante e ne restituisce l'ID."""
+        """Mappa il mezzo di spostamento alla categoria più rilevante per quel mezzo
+        (es. chi usa l'auto sarà interessato ai benzinai in zona) e ne restituisce l'ID."""
         nome_categoria = None
         if mezzo_spostamento in ["AUTO", "MOTO"]:
             nome_categoria = "benzinaio"
@@ -30,7 +31,8 @@ class RaccomandationService:
         elif mezzo_spostamento == "BICI A NOLEGGIO":
             nome_categoria = "noleggio_bici"
 
-        print(f"Mezzo di spostamento: {mezzo_spostamento}, Categoria corrispondente: {nome_categoria}")
+        #DEBUG
+        #print(f"Mezzo di spostamento: {mezzo_spostamento}, Categoria corrispondente: {nome_categoria}")
 
         if not nome_categoria:
             return None
@@ -38,10 +40,7 @@ class RaccomandationService:
         return self.session.exec(query).first()
 
     def calculate_ranking(self, id_utente: int, lat: float, lon: float) -> List[RankingResult]:
-        """
-        Calcola il ranking contestuale per i POI vicini in base a distanza, 
-        orari di apertura, preferenze e mezzo di spostamento dell'utente.
-        """
+        
         pois_vicini = self.poi_service.get_pois_nearby_with_distance(lat, lon, radius_meters=2000.0)
         
         utente = self.session.get(Utente, id_utente)
@@ -89,9 +88,7 @@ class RaccomandationService:
         return risultati_ranking
     
     def get_ranking_list(self, id_utente: int, lat: float, lon: float)-> List[RankingResult]:
-        """
-        Restituisce la lista dei primi 20 POI ordinati per ranking.
-        """
+        
         ranking = self.calculate_ranking(id_utente, lat, lon)
         
         ranking = list(filter(lambda x: x.punteggio > 0, ranking))
@@ -103,10 +100,7 @@ class RaccomandationService:
         return ranking[:20]
     
     def generate_startup_suggestion(self, id_utente: int, lat: float, lon: float) -> EventoPublic | dict:
-        """
-        Genera il suggerimento iniziale per l'app: calcola il ranking,
-        prende il POI migliore e salva un evento di tipo SUGGERIMENTO nel DB.
-        """
+        
         ranking = self.calculate_ranking(id_utente, lat, lon)
 
         if not ranking:

@@ -45,6 +45,7 @@ class TrackingService : LifecycleService() {
     private var isTracking = false
     private var lastLocation: Location? = null
 
+    // Prepara il servizio, la notifica e avvia il setup dei geofence in background.
     override fun onCreate() {
         super.onCreate()
         fusedClient = LocationServices.getFusedLocationProviderClient(this)
@@ -52,10 +53,11 @@ class TrackingService : LifecycleService() {
             createNotificationChannel()
         }
 
-        // Inizializza i Geofence in background al lancio del servizio
+        
         setupGeofencing()
     }
 
+    // Gestisce l'avvio e l'arresto del tracking in base all'azione ricevuta.
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         when (intent?.action) {
@@ -79,6 +81,7 @@ class TrackingService : LifecycleService() {
         return START_STICKY
     }
 
+    // Riceve gli aggiornamenti GPS e aggiorna la posizione corrente condivisa.
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             if (!isTracking) return
@@ -91,6 +94,7 @@ class TrackingService : LifecycleService() {
         }
     }
 
+    // Richiede gli aggiornamenti di posizione ad alta precisione.
     private fun startLocationUpdates() {
         isTracking = true
 
@@ -112,6 +116,7 @@ class TrackingService : LifecycleService() {
         }
     }
 
+    // Ferma il tracking e pulisce l'ultima posizione salvata.
     private fun stopLocationUpdates() {
         if (isTracking) {
             fusedClient.removeLocationUpdates(locationCallback)
@@ -120,6 +125,7 @@ class TrackingService : LifecycleService() {
         }
     }
 
+    // Costruisce la notifica persistente visibile mentre il servizio è attivo.
     private fun buildNotification(): Notification {
         val intent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -135,6 +141,7 @@ class TrackingService : LifecycleService() {
             .build()
     }
 
+    // Crea il canale di notifica richiesto dalle versioni Android recenti.
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
@@ -146,6 +153,7 @@ class TrackingService : LifecycleService() {
         manager.createNotificationChannel(channel)
     }
 
+    // Recupera l'utente loggato e inizializza i geofence dal backend.
     private fun setupGeofencing() {
         val sessionManager = SessionManager(applicationContext)
         val geofenceManager = GeofenceManager(applicationContext)
@@ -165,6 +173,7 @@ class TrackingService : LifecycleService() {
         }
     }
 
+    // Pulisce gli aggiornamenti di posizione quando il servizio viene distrutto.
     override fun onDestroy() {
         stopLocationUpdates()
         super.onDestroy()

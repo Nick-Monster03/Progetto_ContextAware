@@ -28,17 +28,15 @@ import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 
-// IMPORT DA AGGIUNGERE (Verifica che i percorsi siano corretti per il tuo progetto)
-// import com.example.myapplication.data.model.EventoCreate
-// import com.example.myapplication.data.model.TipoEvento
-// import com.example.myapplication.data.repository.EventoRepository
-// import com.example.myapplication.data.remote.api.EventoApi
 
 class AgendaNotificationWorker(
     private val appContext: Context,
     workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
+//Worker periodico il cui unico scopo è richiamare le api del backend per verificare se 
+//ci sono impegni imminenti nei successivi 15 minuti all'orario corrente.
+//In caso affermativo viene inviata una notifica all'utente
     override suspend fun doWork(): Result {
         //Log.d("AGENDA_WORKER", "Worker avviato - controllo impegni critici tramite Repository")
 

@@ -38,6 +38,11 @@ import kotlinx.coroutines.flow.firstOrNull
 import retrofit2.create
 import java.util.Locale.getDefault
 
+/*
+ * ViewModel della schermata mappa: espone via StateFlow i POI filtrati, le categorie,
+ * lo stato dei filtri, il suggerimento contestuale corrente e il ranking dei servizi.
+ * Contiene la routine context-aware che genera un nuovo suggerimento al movimento dell'utente.
+ */
 class MapViewModel(
     private val poiRepository: PoiRepository,
     private val categoriaRepository: CategoriaPOIRepository,
@@ -90,6 +95,12 @@ class MapViewModel(
     val uiMessage: StateFlow<String?> = _uiMessage.asStateFlow()
 
 
+
+    // All'avvio: carica categorie, pre-salva POI e orari nella cache offline (Room),
+    // applica i filtri iniziali e avvia la routine context-aware: osserva il flusso
+    // della posizione e richiede un nuovo suggerimento al backend solo quando lo
+    // spostamento dall'ultimo suggerimento supera i 100 metri, per evitare
+    // chiamate e notifiche ripetute a ogni update GPS.
 
     init {
         fetchCategories()
@@ -183,6 +194,9 @@ class MapViewModel(
         return category?.nome?.toString() ?: "-"
     }
 
+//  Applica i filtri correnti chiamando l'endpoint /poi/filter.
+//  Valida che apertura <= chiusura e lat/lon vengono inviate solo 
+//  Default di fallback: coordinate del centro di Bologna.
     fun applyFilters(userLat: Double? = 44.4949, userLon: Double? = 11.3426) {
 
         val apertura = _orarioApertura.value
@@ -220,8 +234,8 @@ class MapViewModel(
                     _poiList.value = pois
                     _isLoading.value = false
                     //DEBUG:
-                    val nomiPoi = pois.joinToString { it.nome }
-                    Log.d("MapViewModel", "Filtri applicati! Trovati ${pois.size} POI: $nomiPoi")
+                    //val nomiPoi = pois.joinToString { it.nome }
+                    //Log.d("MapViewModel", "Filtri applicati! Trovati ${pois.size} POI: $nomiPoi")
                 },
                 onFailure = {
                     _isLoading.value = false
@@ -243,6 +257,9 @@ class MapViewModel(
         }
     }
 
+// Richiede al backend il suggerimento contestuale per la posizione corrente
+// (endpoint startup-suggestion): il server calcola il ranking, salva l'evento
+// di tipo Suggerimento a DB e lo restituisce per la card in mappa.
     fun getContextualSuggestion(idUtente: Int) {
         val currentLoc = userLocation.value
 
@@ -273,6 +290,9 @@ class MapViewModel(
         _suggestionEvent.value = null
     }
 
+    // Recupera i primi 20 servizi ordinati per punteggio contestuale
+    // (distanza, orari di apertura, preferenze) e apre il bottom sheet del ranking.
+    // Richiede utente loggato e posizione GPS disponibile.
     fun fetchRankingList() {
         Log.d("MapViewModel", "Pulsante 'Servizi Vicini' premuto!")
         val currentLoc = userLocation.value

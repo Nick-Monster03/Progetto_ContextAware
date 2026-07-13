@@ -125,33 +125,3 @@ fun MyApplicationApp() {
     }
 }
 
-@Composable
-fun MapScreenStub() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Qui andrà la mappa con i POI e il Geo-fencing")
-    }
-}
-
-@Composable
-fun AgendaScreenStub() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Qui andrà l'Agenda per i suggerimenti pre-lezione")
-    }
-}
-
-@Composable
-fun HistoryScreenStub() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Qui andranno le preferenze utente (Campus, Mezzi, Categorie POI)")
-            Spacer(modifier = Modifier.height(32.dp))
-        }
-    }
-}
-
-@Composable
-fun ProfileScreenStub() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Qui andranno le preferenze utente (Campus, Mezzi, Categorie POI)")
-    }
-}

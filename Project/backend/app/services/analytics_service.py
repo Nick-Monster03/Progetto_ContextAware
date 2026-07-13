@@ -69,7 +69,7 @@ class AnalyticsService:
 
     def get_heatmap_poi_suggeriti(self, id_utente: int | None) -> List[HeatmapPoint]:
         """
-        Restituisce le coordinate (centroide) dei POI più suggeriti.
+        Restituisce le coordinate (centroide nel caso dei polygon) dei POI più suggeriti.
         Se id_utente è fornito, filtra solo per quel singolo utente.
         """
         sql_query = """

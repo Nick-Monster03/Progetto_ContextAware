@@ -19,6 +19,9 @@ import com.example.myapplication.data.model.FeedbackEvento
 import com.example.myapplication.ui.storico.StoricoViewModel
 import com.example.myapplication.R
 
+/* Composable principale dello storico: carica gli eventi dell'utente al primo
+  accesso alla schermata e li mostra in ordine dal più recente (ordinamento
+  eseguito dal backend), con gli stati di caricamento e lista vuota.*/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StoricoView(viewModel: StoricoViewModel) {
@@ -67,6 +70,8 @@ fun StoricoView(viewModel: StoricoViewModel) {
     }
 }
 
+//Card di un singolo evento: tipo, messaggio e motivo che lo ha generato,
+//più i pulsanti di feedback;
 @Composable
 fun EventoCard(evento: EventoPublic, onFeedback: (FeedbackEvento) -> Unit) {
     Card(

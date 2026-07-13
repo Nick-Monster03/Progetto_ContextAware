@@ -12,7 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun LoginScreen(
-    viewModel: AuthViewModel, // Passiamo il ViewModel
+    viewModel: AuthViewModel, 
     onLoginSuccess: () -> Unit,
     onRegisterClick: () -> Unit
 ) {
@@ -21,7 +21,6 @@ fun LoginScreen(
     var cognome by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // Osserviamo lo stato dal ViewModel
     val authState by viewModel.authState.collectAsStateWithLifecycle()
 
     LaunchedEffect(authState) {

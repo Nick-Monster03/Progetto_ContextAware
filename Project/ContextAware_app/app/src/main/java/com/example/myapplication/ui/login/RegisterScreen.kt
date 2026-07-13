@@ -17,10 +17,10 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var campus by remember { mutableStateOf("") }
 
-    // 1. Rendiamo lo stato nullable. Inizialmente è null (nessuna selezione)
     var mezzoSpostamento by remember { mutableStateOf<MezzoSpostamento?>(null) }
     var dropdownExpanded by remember { mutableStateOf(false) }
 
+//Form di Registrazione
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier

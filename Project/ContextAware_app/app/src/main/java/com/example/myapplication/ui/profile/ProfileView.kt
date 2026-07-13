@@ -14,6 +14,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.data.model.MezzoSpostamento
 
+/*Mostra i dati dell'utente loggato e permette di modificare campus,
+    mezzo di spostamento e categorie preferite, delegando salvataggio e sincronizzazione al ProfileViewModel*/
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ProfileView(viewModel: ProfileViewModel) {

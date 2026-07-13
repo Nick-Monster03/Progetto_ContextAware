@@ -42,7 +42,7 @@ class OrariPoiService:
         
         new_apertura = orario_data.get("orario_apertura", db_orario.orario_apertura)
         new_chiusura = orario_data.get("orario_chiusura", db_orario.orario_chiusura)
-        
+        #print(f"DEBUG: new_apertura={new_apertura}, new_chiusura={new_chiusura}")
         # if new_chiusura <= new_apertura:
         #     raise ValueError("L'orario di chiusura deve essere successivo all'orario di apertura.")
 

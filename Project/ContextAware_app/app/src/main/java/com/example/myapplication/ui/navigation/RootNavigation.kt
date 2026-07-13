@@ -15,6 +15,8 @@ import com.example.myapplication.ui.login.AuthViewModel
 import com.example.myapplication.ui.login.RegisterScreen
 import com.example.myapplication.ui.login.LoginScreen
 
+//Questa funzione serve solo per gestire e navigare tra le schermate di login, registrazione e l'app principale. 
+//Non contiene logica di business o di interazione con il backend.
 @Composable
 fun RootNavigation() {
     val navController = rememberNavController()

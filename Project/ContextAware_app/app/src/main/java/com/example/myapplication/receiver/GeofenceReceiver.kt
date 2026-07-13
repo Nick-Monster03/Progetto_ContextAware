@@ -19,7 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class GeofenceReceiver : BroadcastReceiver() {
-
+// Gestisce l'evento di geofence ricevuto e verifica se l'utente è entrato o uscito dall'area.
+// Se l'identificativo è valido, invia la richiesta al backend e mostra una notifica in caso di successo.
     override fun onReceive(context: Context, intent: Intent) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         if (geofencingEvent == null || geofencingEvent.hasError()) {

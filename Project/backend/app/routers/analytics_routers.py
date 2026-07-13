@@ -21,22 +21,24 @@ def get_statistiche_mezzi(service: AnalyticsService = Depends(get_analytics_serv
 @router.get("/feedback", response_model=List[StatisticaFeedback])
 def get_statistiche_feedback(service: AnalyticsService = Depends(get_analytics_service)):
     """
-    Restituisce il bilancio dei feedback sugli eventi (Quanti Utili vs Quanti Non Utili).
+    Restituisce il bilancio dei feedback sugli  marchiati come "Suggerimento" (Quanti Utili vs Quanti Non Utili).
     """
     return service.get_statistiche_feedback()
 
 @router.get("/poi", response_model=List[StatisticaPOI])
 def get_statistiche_poi(service: AnalyticsService = Depends(get_analytics_service)):
     """
-    Restituisce i POI che hanno generato il maggior numero di eventi/suggerimenti.
+    Restituisce il numero di eventi raggruppati per POI a cui sono stati associati.
     """
     return service.get_statistiche_poi()
 
 @router.get("/dashboard", response_model=DashboardResponse)
 def get_dashboard_completa(service: AnalyticsService = Depends(get_analytics_service)):
     """
-    Recupera tutte le statistiche in un'unica chiamata. 
-    Ideale per il primo caricamento della pagina della Dashboard Web.
+    Restituisce un oggetto DashboardResponse con i dati aggregati per la dashboard:
+    utenti raggruppati per mezzo di spostamento, 
+    riepilogo dei feedback ricevuti dai suggerimenti
+    e classifica dei POI con piu eventi registrati.
     """
     return service.get_dashboard_stats()
 

@@ -21,7 +21,7 @@ def create_evento(evento_in: EventoCreate, session: Session = Depends(get_sessio
 @router.get("/getAll", response_model=List[EventoPublic])
 def read_all_eventi(session: Session = Depends(get_session)):
     """
-    Recupera tutti gli eventi presenti nel database. Utile per la dashboard di amministrazione.
+    Recupera tutti gli eventi presenti nel database.
     """
     try:
         return EventoService(session=session).get_all_eventi()

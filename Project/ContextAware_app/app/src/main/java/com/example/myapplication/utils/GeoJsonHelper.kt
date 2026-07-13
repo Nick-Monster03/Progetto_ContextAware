@@ -28,6 +28,7 @@ private val multiPolygonStyle = PolygonStyle(
     strokeWidth = 3f
 )
 
+// Aggiunge al mapView i marker o i poligoni letti dal GeoJSON del POI.
 fun addGeoJsonToMap(
     mapView: MapView,
     poiId: Int,
@@ -82,6 +83,7 @@ fun addGeoJsonToMap(
     return addedOverlays
 }
 
+// Converte una coppia lon/lat GeoJSON in un GeoPoint di osmdroid.
 private fun JsonElement.toGeoPoint(): GeoPoint {
     val coords = this.jsonArray
     val lon = coords[0].jsonPrimitive.double
@@ -89,8 +91,10 @@ private fun JsonElement.toGeoPoint(): GeoPoint {
     return GeoPoint(lat, lon)
 }
 
+// Converte una lista di coordinate GeoJSON in una lista di GeoPoint.
 private fun JsonArray.toGeoPoints(): List<GeoPoint> = this.map { it.toGeoPoint() }
 
+// Crea un marker sulla mappa per geometrie di tipo Point.
 private fun createMarker(
     mapView: MapView,
     coordinates: JsonArray,
@@ -111,6 +115,7 @@ private fun createMarker(
     }
 }
 
+// Crea un poligono sulla mappa, gestendo anche eventuali buchi interni.
 private fun createPolygon(
     mapView: MapView,
     coordinates: JsonArray,
@@ -144,6 +149,7 @@ private fun createPolygon(
 }
 
 //Funzione per ricavare il centor di una geometria (caso polygon e multipolygon) così da usufruiredel geofence
+// Calcola il centro della geometria per ottenere la posizione da usare nel geofence.
 fun JsonElement.getCenterForGeofence(): Pair<Double, Double>? {
     return try {
         val jsonObj = this.jsonObject

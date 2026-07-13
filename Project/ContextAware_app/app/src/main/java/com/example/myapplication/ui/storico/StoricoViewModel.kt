@@ -16,6 +16,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+/*
+    ViewModel dello storico: recupera dal backend gli eventi contestuali
+    dell'utente loggato e gestisce l'invio del feedback Utile / Non Utile,
+    aggiornando localmente il singolo evento modificato senza ricaricare la lista.
+ */
 class StoricoViewModel(
     private val repository: EventoRepository,
     private val sessionManager: SessionManager

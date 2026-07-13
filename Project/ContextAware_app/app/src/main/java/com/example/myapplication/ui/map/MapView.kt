@@ -39,6 +39,16 @@ import com.example.myapplication.services.TrackingService
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 
+/*
+ Composable della mappa. Punti chiave:
+ - Permessi: al primo avvio richiede localizzazione 
+   se concessi avvia TrackingService come foreground service per gli update GPS.
+ - Ridisegno marker: a ogni cambio di poiList vengono rimossi tutti gli overlay TRANNE
+   il marker utente (predicato: !is Marker || id != "user_location") e i POI vengono
+   ricreati dal GeoJSON; il marker utente viene invece sostituito a ogni nuova posizione.
+ - I filtri (distanza, categorie, fascia oraria, campus) e il ranking sono delegati
+   al MapViewModel; la view osserva solo gli StateFlow.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MapView(viewModel: MapViewModel) {
@@ -150,7 +160,7 @@ fun MapView(viewModel: MapViewModel) {
 
     //MARKER POI
     LaunchedEffect(poiList) {
-        mapView.overlays.removeAll { it !is org.osmdroid.views.overlay.Marker || it.id != "user_location" } // <-- ATTENZIONE QUI
+        mapView.overlays.removeAll { it !is org.osmdroid.views.overlay.Marker || it.id != "user_location" }
 
         poiList.forEach { poi ->
             addGeoJsonToMap(
