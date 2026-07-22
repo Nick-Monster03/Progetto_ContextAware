@@ -18,16 +18,18 @@ Course project for *Context-Aware Systems*, University of Bologna, a.y. 2025-202
 
 ## Running the server-side platform
 
-Note:if a local PostgreSQL instance is running on your machine, stop it first to free port 5432:
+Note:if a local PostgreSQL instance is running on your machine (Linux), stop it first to free port 5432:
 
-```bash
+```
+ bash
  sudo systemctl stop postgresql
 ```
 
 From the project root, start the whole platform (database, backend, dashboard)
 with a single command:
 
-```bash
+```
+bash
 docker compose up -d --build
 ```
 
@@ -38,7 +40,8 @@ PostgreSQL/PostGIS: localhost:5432
 
 To stop the platform:
 
-```bash
+```
+bash
 docker compose down
 ```
 
@@ -59,7 +62,8 @@ emulator
 For demonstration purposes, the GPS position can be injected into the Android
 emulator and changed in real time:
 
-```bash
+```
+bash
 adb emu geo fix <lon> <lat>
 ```
 
@@ -72,8 +76,9 @@ Project/
 - docker-compose.yml
 - backend/            # FastAPI backend 
 - frontend/           # Web dashboard served by Nginx
+- db/init.sql         # Database initialization script (schema + POI dataset)
 - ContextAware_app/   # Android application 
 ```
 
 For the full description of the architecture, the REST API and the contextual
-ranking rule, see the technical report included in the submission.
+ranking rule, see the technical report included in the repository.
